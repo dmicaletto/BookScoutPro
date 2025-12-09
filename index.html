@@ -481,42 +481,74 @@
         };
 
         window.processIsbn = async (isbn) => {
-            showLoader(true);
+            showLoader(true, "Ricerca dati reali...");
 
-            // 1. Check if in Inventory (Sync check is fine thanks to onSnapshot)
-            const existingItem = inventoryData.find(item => item.book.isbn === isbn);
+            // 1. Pulizia ISBN (rimuovi trattini se presenti)
+            const cleanIsbn = isbn.replace(/-/g, "");
+
+            // 2. Controllo se è già in inventario (usando i dati Firestore caricati)
+            const existingItem = inventoryData.find(item => item.book.isbn.replace(/-/g, "") === cleanIsbn);
 
             if (existingItem) {
-                // BOOK ALREADY EXISTS -> Open Detail in "Inventory Mode"
+                // IL LIBRO ESISTE GIÀ -> Modalità Inventario
                 showLoader(false);
                 openDetailView(existingItem, true);
             } else {
-                // NEW SCAN -> Fetch Market Data (Simulated) & Open Detail in "New Mode"
-                setTimeout(() => {
-                    // Create a "book object" simulating API response
-                    const mockData = mockDb['default'];
-                    const newBook = {
-                        isbn: isbn,
-                        title: mockData.title,
-                        author: mockData.author,
-                        cover: mockData.cover,
-                        prices: { // Randomize slightly for realism
-                            amazon: (mockData.amazon + (Math.random() * 4 - 2)).toFixed(2),
-                            ebay: (mockData.ebay + (Math.random() * 4 - 2)).toFixed(2),
-                            abebooks: (mockData.abebooks + (Math.random() * 4 - 2)).toFixed(2)
-                        },
-                        // Generate mock history for charts [6 months]
-                        history: {
-                            amazon: Array.from({length: 6}, () => (mockData.amazon + (Math.random() * 5 - 2)).toFixed(2)),
-                            ebay: Array.from({length: 6}, () => (mockData.ebay + (Math.random() * 5 - 2)).toFixed(2)),
-                            abebooks: Array.from({length: 6}, () => (mockData.abebooks + (Math.random() * 5 - 2)).toFixed(2))
-                        },
-                        strategy: mockData.strategy
-                    };
-                    
+                // NUOVA SCANSIONE -> Chiamata API Reale a Google Books
+                try {
+                    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${cleanIsbn}`);
+                    const data = await response.json();
+
+                    if (data.totalItems > 0) {
+                        const info = data.items[0].volumeInfo;
+                        
+                        // Costruiamo l'oggetto libro con dati REALI
+                        const realBook = {
+                            isbn: cleanIsbn,
+                            title: info.title || "Titolo sconosciuto",
+                            author: info.authors ? info.authors[0] : "Autore sconosciuto",
+                            // Google usa http, meglio forzare https per evitare warning misti
+                            cover: info.imageLinks ? info.imageLinks.thumbnail.replace('http://', 'https://') : "https://via.placeholder.com/150x200?text=No+Cover",
+                            
+                            // NOTA SUI PREZZI:
+                            // Le API gratuite non danno i prezzi dell'usato di Amazon/eBay.
+                            // Per ora simuliamo un prezzo base calcolato o mettiamo "Vedi Link"
+                            // In un'app reale servirebbe un backend (Cloud Function) per fare scraping.
+                            prices: { 
+                                amazon: "Vedi Link", 
+                                ebay: "Vedi Link", 
+                                abebooks: "Vedi Link" 
+                            },
+                            
+                            // Link reali per controllare i prezzi manualmente
+                            links: {
+                                amazon: `https://www.amazon.it/s?k=${cleanIsbn}`,
+                                ebay: `https://www.ebay.it/sch/i.html?_nkw=${cleanIsbn}`,
+                                abebooks: `https://www.abebooks.it/servlet/SearchResults?isbn=${cleanIsbn}`
+                            },
+
+                            strategy: "Dati recuperati da Google Books. Verifica i prezzi sui link.",
+                            
+                            // Creiamo uno storico finto per la demo grafica
+                            history: {
+                                amazon: [10, 12, 11, 13, 12, 14],
+                                ebay: [8, 9, 8, 7, 8, 9],
+                                abebooks: [15, 15, 14, 14, 13, 13]
+                            }
+                        };
+                        
+                        showLoader(false);
+                        openDetailView({ book: realBook }, false);
+
+                    } else {
+                        throw new Error("Libro non trovato su Google Books");
+                    }
+
+                } catch (error) {
+                    console.error(error);
                     showLoader(false);
-                    openDetailView({ book: newBook }, false); // False = not in inventory
-                }, 800);
+                    alert("Libro non trovato o errore di rete. Riprova o inserisci manualmente.");
+                }
             }
         };
 
