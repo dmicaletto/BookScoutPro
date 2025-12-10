@@ -151,6 +151,7 @@
                         </button>
                     </div>
                 </div>
+
                 <button onclick="simulateScan()" class="bg-white/90 hover:bg-white text-emerald-700 font-semibold py-2 px-6 rounded-full shadow-lg text-sm transition transform hover:scale-105">
                     <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Simula Scansione
                 </button>
@@ -184,13 +185,14 @@
                             <div class="bg-gray-800 text-white px-2 py-1 rounded text-xs flex items-center gap-2">
                                 <i class="fa-solid fa-location-dot text-emerald-400"></i>
                                 <span id="res-shelf-pos">AA-01</span>
+                                <span id="res-copies-badge" class="ml-2 bg-gray-600 px-1.5 rounded-full text-[10px]">x1</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Price Comparison Grid -->
-                <h3 class="text-white text-sm font-bold ml-1 mt-2 mb-1">Confronto Prezzi</h3>
+                <!-- Price Comparison Grid (EDITABLE) -->
+                <h3 class="text-white text-sm font-bold ml-1 mt-2 mb-1">Strategia Prezzi</h3>
                 <div class="grid grid-cols-1 gap-3">
                     
                     <!-- Amazon Row -->
@@ -204,24 +206,24 @@
                                 </div>
                             </div>
                             <div class="flex-1 border-l border-gray-200 pl-4 flex items-center justify-between">
-                                <div class="flex flex-col justify-center">
+                                <div class="flex flex-col justify-center w-full pr-2">
                                     <span class="text-[10px] text-gray-400 uppercase font-bold mb-1">Il tuo prezzo</span>
                                     <div class="flex items-center gap-2">
-                                        <span id="my-price-amazon" class="font-bold text-gray-400 text-sm italic">Non impostato</span>
-                                        <span id="diff-amazon"></span>
+                                        <div class="relative w-20">
+                                            <span class="absolute left-2 top-1.5 text-gray-500 text-sm">€</span>
+                                            <input type="number" step="0.01" id="input-price-amazon" oninput="calculateDiff('amazon')" class="w-full pl-5 pr-1 py-1 bg-gray-50 border border-gray-300 rounded text-sm font-bold focus:border-yellow-500 focus:bg-white outline-none" placeholder="-">
+                                        </div>
+                                        <div id="diff-amazon"></div>
                                     </div>
                                 </div>
-                                <button onclick="toggleTrend('amazon')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition">
+                                <button onclick="toggleTrend('amazon')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition shrink-0">
                                     <i class="fa-solid fa-chart-line"></i>
                                 </button>
                             </div>
                         </div>
-                        <!-- Expanded Trend Chart -->
                         <div id="trend-amazon" class="trend-panel bg-gray-50 px-3 pb-3">
                             <h4 class="text-[10px] font-bold text-gray-400 uppercase mb-2">Andamento ultimi 6 mesi</h4>
-                            <div class="h-20 flex items-end justify-between gap-1 text-[8px] text-gray-400" id="chart-amazon">
-                                <!-- Bars injected by JS -->
-                            </div>
+                            <div class="h-20 flex items-end justify-between gap-1 text-[8px] text-gray-400" id="chart-amazon"></div>
                         </div>
                     </div>
 
@@ -236,24 +238,24 @@
                                 </div>
                             </div>
                             <div class="flex-1 border-l border-gray-200 pl-4 flex items-center justify-between">
-                                <div class="flex flex-col justify-center">
+                                <div class="flex flex-col justify-center w-full pr-2">
                                     <span class="text-[10px] text-gray-400 uppercase font-bold mb-1">Il tuo prezzo</span>
                                     <div class="flex items-center gap-2">
-                                        <span id="my-price-ebay" class="font-bold text-gray-400 text-sm italic">Non impostato</span>
-                                        <span id="diff-ebay"></span>
+                                        <div class="relative w-20">
+                                            <span class="absolute left-2 top-1.5 text-gray-500 text-sm">€</span>
+                                            <input type="number" step="0.01" id="input-price-ebay" oninput="calculateDiff('ebay')" class="w-full pl-5 pr-1 py-1 bg-gray-50 border border-gray-300 rounded text-sm font-bold focus:border-blue-500 focus:bg-white outline-none" placeholder="-">
+                                        </div>
+                                        <div id="diff-ebay"></div>
                                     </div>
                                 </div>
-                                <button onclick="toggleTrend('ebay')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition">
+                                <button onclick="toggleTrend('ebay')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition shrink-0">
                                     <i class="fa-solid fa-chart-line"></i>
                                 </button>
                             </div>
                         </div>
-                         <!-- Expanded Trend Chart -->
                          <div id="trend-ebay" class="trend-panel bg-gray-50 px-3 pb-3">
                             <h4 class="text-[10px] font-bold text-gray-400 uppercase mb-2">Andamento ultimi 6 mesi</h4>
-                            <div class="h-20 flex items-end justify-between gap-1 text-[8px] text-gray-400" id="chart-ebay">
-                                <!-- Bars injected by JS -->
-                            </div>
+                            <div class="h-20 flex items-end justify-between gap-1 text-[8px] text-gray-400" id="chart-ebay"></div>
                         </div>
                     </div>
 
@@ -268,24 +270,24 @@
                                 </div>
                             </div>
                             <div class="flex-1 border-l border-gray-200 pl-4 flex items-center justify-between">
-                                <div class="flex flex-col justify-center">
+                                <div class="flex flex-col justify-center w-full pr-2">
                                     <span class="text-[10px] text-gray-400 uppercase font-bold mb-1">Il tuo prezzo</span>
                                     <div class="flex items-center gap-2">
-                                        <span id="my-price-abebooks" class="font-bold text-gray-400 text-sm italic">Non impostato</span>
-                                        <span id="diff-abebooks"></span>
+                                        <div class="relative w-20">
+                                            <span class="absolute left-2 top-1.5 text-gray-500 text-sm">€</span>
+                                            <input type="number" step="0.01" id="input-price-abebooks" oninput="calculateDiff('abebooks')" class="w-full pl-5 pr-1 py-1 bg-gray-50 border border-gray-300 rounded text-sm font-bold focus:border-red-700 focus:bg-white outline-none" placeholder="-">
+                                        </div>
+                                        <div id="diff-abebooks"></div>
                                     </div>
                                 </div>
-                                <button onclick="toggleTrend('abebooks')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition">
+                                <button onclick="toggleTrend('abebooks')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition shrink-0">
                                     <i class="fa-solid fa-chart-line"></i>
                                 </button>
                             </div>
                         </div>
-                         <!-- Expanded Trend Chart -->
                          <div id="trend-abebooks" class="trend-panel bg-gray-50 px-3 pb-3">
                             <h4 class="text-[10px] font-bold text-gray-400 uppercase mb-2">Andamento ultimi 6 mesi</h4>
-                            <div class="h-20 flex items-end justify-between gap-1 text-[8px] text-gray-400" id="chart-abebooks">
-                                <!-- Bars injected by JS -->
-                            </div>
+                            <div class="h-20 flex items-end justify-between gap-1 text-[8px] text-gray-400" id="chart-abebooks"></div>
                         </div>
                     </div>
 
@@ -331,11 +333,11 @@
             <p class="animate-pulse" id="loading-text">Elaborazione...</p>
         </div>
 
-        <!-- Add/Edit Modal (Reused) -->
+        <!-- Add/Edit Modal (SIMPLIFIED) -->
         <div id="modal-inventory" class="hidden absolute inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm fade-in">
             <div class="bg-white w-full max-w-sm p-6 rounded-t-2xl sm:rounded-2xl shadow-2xl animate-slide-up flex flex-col max-h-[90vh]">
                 <div class="flex justify-between items-center mb-4 shrink-0">
-                    <h3 class="font-bold text-lg text-gray-800" id="modal-title">Gestione Libro</h3>
+                    <h3 class="font-bold text-lg text-gray-800" id="modal-title">Logistica Magazzino</h3>
                     <button onclick="closeInventoryModal()" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
                 </div>
                 
@@ -345,8 +347,8 @@
                     </p>
     
                     <div class="mb-4">
-                        <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Collocazione</h4>
-                        <div class="flex gap-4">
+                        <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Collocazione & Copie</h4>
+                        <div class="flex gap-3">
                             <div class="flex-1">
                                 <input type="text" id="inv-shelf" maxlength="2" class="w-full text-center text-xl font-mono font-bold border-2 border-gray-200 rounded-lg p-2 focus:border-emerald-500 uppercase" placeholder="AA" oninput="this.value = this.value.toUpperCase()">
                                 <label class="text-[10px] text-gray-400 block text-center mt-1">Scaffale</label>
@@ -355,30 +357,20 @@
                                 <input type="number" id="inv-pos" maxlength="2" class="w-full text-center text-xl font-mono font-bold border-2 border-gray-200 rounded-lg p-2 focus:border-emerald-500" placeholder="01">
                                 <label class="text-[10px] text-gray-400 block text-center mt-1">Posizione</label>
                             </div>
-                        </div>
-                    </div>
-    
-                    <div class="mb-6">
-                        <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Tuoi Prezzi (€)</h4>
-                        <div class="grid grid-cols-3 gap-2">
-                            <div>
-                                <label class="text-[10px] text-gray-400 mb-1 block">Amazon</label>
-                                <input type="number" step="0.01" id="inv-price-amz" class="w-full p-2 border border-gray-200 rounded-lg text-sm text-center font-bold" placeholder="-">
-                            </div>
-                            <div>
-                                <label class="text-[10px] text-gray-400 mb-1 block">eBay</label>
-                                <input type="number" step="0.01" id="inv-price-ebay" class="w-full p-2 border border-gray-200 rounded-lg text-sm text-center font-bold" placeholder="-">
-                            </div>
-                            <div>
-                                <label class="text-[10px] text-gray-400 mb-1 block">Abe</label>
-                                <input type="number" step="0.01" id="inv-price-abe" class="w-full p-2 border border-gray-200 rounded-lg text-sm text-center font-bold" placeholder="-">
+                            <div class="w-20">
+                                <input type="number" id="inv-copies" min="1" class="w-full text-center text-xl font-mono font-bold border-2 border-gray-200 rounded-lg p-2 focus:border-emerald-500" placeholder="1" value="1">
+                                <label class="text-[10px] text-gray-400 block text-center mt-1">Copie</label>
                             </div>
                         </div>
                     </div>
+                    
+                    <p class="text-[10px] text-gray-400 italic text-center mb-2">
+                        * I prezzi sono stati salvati dalla schermata precedente.
+                    </p>
                 </div>
 
                 <button onclick="saveToFirestore()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition shadow-lg shrink-0 mt-2">
-                    <span id="modal-save-btn">Salva Modifiche</span>
+                    <span id="modal-save-btn">Conferma e Salva</span>
                 </button>
             </div>
         </div>
@@ -391,29 +383,17 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // --- FIREBASE SETUP ---
-        // Your web app's Firebase configuration
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-        const firebaseConfig = {
-          apiKey: "AIzaSyDDQlIeeWw19Eo6qnszCyrXyG4Bc35BLhk",
-          authDomain: "bookscoutpro.firebaseapp.com",
-          projectId: "bookscoutpro",
-          storageBucket: "bookscoutpro.firebasestorage.app",
-          messagingSenderId: "124845335540",
-          appId: "1:124845335540:web:79e3e82a919cf0890ccfa1",
-          measurementId: "G-C1HH2R0RBB"
-        };
-        
-        // Initialize Firebase
+        const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         let currentUser = null;
-        let inventoryData = []; // Local cache synced with Firestore
-        let currentViewedBook = null; // Data of book currently in Detail View
-        let isEditingMode = false; // Are we editing an existing item?
-        let currentDocId = null; // Firestore Doc ID if editing
+        let inventoryData = []; 
+        let currentViewedBook = null; 
+        let isEditingMode = false; 
+        let currentDocId = null; 
 
         // Auth & Init
         const initAuth = async () => {
@@ -438,37 +418,21 @@
                 document.getElementById('auth-status').innerText = "Online";
                 document.getElementById('auth-status').className = "text-emerald-500";
                 
-                // Start listening to Firestore
                 const q = query(collection(db, 'artifacts', appId, 'users', user.uid, 'inventory'));
                 onSnapshot(q, (snapshot) => {
                     inventoryData = snapshot.docs.map(doc => ({
                         firestoreId: doc.id,
                         ...doc.data()
                     }));
-                    renderInventoryList(); // Re-render list if open
+                    renderInventoryList();
                 }, (error) => {
                     console.error("Firestore Error:", error);
                 });
             }
         });
 
-        // --- MOCK DATA FOR MARKET ANALYSIS ---
-        const mockDb = {
-            "default": {
-                title: "Il Nome della Rosa",
-                author: "Umberto Eco",
-                cover: "https://m.media-amazon.com/images/I/71hVw-q+F7L._AC_UF1000,1000_QL80_.jpg",
-                amazon: 12.50,
-                ebay: 9.90,
-                abebooks: 18.00,
-                strategy: "Opportunità di arbitraggio su eBay.",
-                margin: "+65%"
-            }
-        };
-
         // --- CORE LOGIC ---
 
-        // Espongo le funzioni necessarie all'HTML
         window.manualSearch = () => {
             const isbn = document.getElementById('isbn-input').value;
             if(isbn.length > 3) processIsbn(isbn);
@@ -482,72 +446,48 @@
 
         window.processIsbn = async (isbn) => {
             showLoader(true, "Ricerca dati reali...");
-
-            // 1. Pulizia ISBN (rimuovi trattini se presenti)
             const cleanIsbn = isbn.replace(/-/g, "");
 
-            // 2. Controllo se è già in inventario (usando i dati Firestore caricati)
             const existingItem = inventoryData.find(item => item.book.isbn.replace(/-/g, "") === cleanIsbn);
 
             if (existingItem) {
-                // IL LIBRO ESISTE GIÀ -> Modalità Inventario
                 showLoader(false);
                 openDetailView(existingItem, true);
             } else {
-                // NUOVA SCANSIONE -> Chiamata API Reale a Google Books
                 try {
                     const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${cleanIsbn}`);
                     const data = await response.json();
 
                     if (data.totalItems > 0) {
                         const info = data.items[0].volumeInfo;
-                        
-                        // Costruiamo l'oggetto libro con dati REALI
                         const realBook = {
                             isbn: cleanIsbn,
                             title: info.title || "Titolo sconosciuto",
                             author: info.authors ? info.authors[0] : "Autore sconosciuto",
-                            // Google usa http, meglio forzare https per evitare warning misti
                             cover: info.imageLinks ? info.imageLinks.thumbnail.replace('http://', 'https://') : "https://via.placeholder.com/150x200?text=No+Cover",
-                            
-                            // NOTA SUI PREZZI:
-                            // Le API gratuite non danno i prezzi dell'usato di Amazon/eBay.
-                            // Per ora simuliamo un prezzo base calcolato o mettiamo "Vedi Link"
-                            // In un'app reale servirebbe un backend (Cloud Function) per fare scraping.
-                            prices: { 
-                                amazon: "Vedi Link", 
-                                ebay: "Vedi Link", 
-                                abebooks: "Vedi Link" 
-                            },
-                            
-                            // Link reali per controllare i prezzi manualmente
+                            prices: { amazon: "12.50", ebay: "9.90", abebooks: "15.00" }, // Simulated for demo diff
                             links: {
                                 amazon: `https://www.amazon.it/s?k=${cleanIsbn}`,
                                 ebay: `https://www.ebay.it/sch/i.html?_nkw=${cleanIsbn}`,
                                 abebooks: `https://www.abebooks.it/servlet/SearchResults?isbn=${cleanIsbn}`
                             },
-
-                            strategy: "Dati recuperati da Google Books. Verifica i prezzi sui link.",
-                            
-                            // Creiamo uno storico finto per la demo grafica
+                            strategy: "Dati recuperati da Google Books.",
                             history: {
                                 amazon: [10, 12, 11, 13, 12, 14],
                                 ebay: [8, 9, 8, 7, 8, 9],
                                 abebooks: [15, 15, 14, 14, 13, 13]
                             }
                         };
-                        
                         showLoader(false);
                         openDetailView({ book: realBook }, false);
 
                     } else {
-                        throw new Error("Libro non trovato su Google Books");
+                        throw new Error("Libro non trovato");
                     }
-
                 } catch (error) {
                     console.error(error);
                     showLoader(false);
-                    alert("Libro non trovato o errore di rete. Riprova o inserisci manualmente.");
+                    alert("Libro non trovato o errore di rete.");
                 }
             }
         };
@@ -556,10 +496,7 @@
         window.toggleTrend = (channel) => {
             const panel = document.getElementById(`trend-${channel}`);
             const isOpen = panel.classList.contains('open');
-            
-            // Close all others first (optional UX choice)
             document.querySelectorAll('.trend-panel').forEach(p => p.classList.remove('open'));
-
             if (!isOpen) {
                 renderChart(channel);
                 panel.classList.add('open');
@@ -568,15 +505,9 @@
 
         function renderChart(channel) {
             const container = document.getElementById(`chart-${channel}`);
-            // Get history from current book object
-            // If book was loaded from inventory or new scan, it should have history. 
-            // If old inventory items don't have history, we mock it on the fly.
-            
             let history = currentViewedBook.book.history?.[channel];
-            
-            // Fallback for old items without history
             if (!history) {
-                 const currentPrice = parseFloat(currentViewedBook.book.prices[channel]);
+                 const currentPrice = parseFloat(currentViewedBook.book.prices[channel]) || 10;
                  history = Array.from({length: 6}, () => (currentPrice + (Math.random() * 4 - 2)).toFixed(2));
             }
 
@@ -585,35 +516,53 @@
             const months = ["Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
 
             const barsHtml = history.map((val, i) => {
-                const heightPct = ((val - minVal) / (maxVal - minVal)) * 80 + 10; // Normalize to 10-90% height
-                // Determine color (green if trending up vs prev, red if down)
+                const heightPct = ((val - minVal) / (maxVal - minVal)) * 80 + 10; 
                 const prev = i > 0 ? history[i-1] : val;
                 const colorClass = val >= prev ? 'bg-emerald-400' : 'bg-red-400';
-                
                 return `
                     <div class="flex flex-col items-center justify-end h-full w-full group">
                          <span class="mb-1 opacity-0 group-hover:opacity-100 transition text-[9px] font-bold text-gray-600">€${val}</span>
                         <div class="w-3 ${colorClass} chart-bar rounded-t" style="height: ${heightPct}%"></div>
                         <span class="mt-1">${months[i]}</span>
-                    </div>
-                `;
+                    </div>`;
             }).join('');
-
             container.innerHTML = barsHtml;
         }
 
-
         // --- UI FUNCTIONS ---
+        
+        window.calculateDiff = (channel) => {
+            const inputVal = document.getElementById(`input-price-${channel}`).value;
+            const marketVal = currentViewedBook.book.prices[channel];
+            const diffEl = document.getElementById(`diff-${channel}`);
+
+            if(!inputVal) {
+                diffEl.innerHTML = "";
+                return;
+            }
+
+            // Simple parsing, assuming marketVal is numeric string for now
+            const mkt = parseFloat(marketVal); 
+            const my = parseFloat(inputVal);
+
+            if(isNaN(mkt)) return; // If market price is "Vedi Link", skip diff
+
+            const diff = my - mkt;
+            
+            if (diff > 0) {
+                diffEl.innerHTML = `<span class="text-[10px] bg-red-100 text-red-600 px-1 rounded font-bold">+€${diff.toFixed(2)}</span>`;
+            } else {
+                diffEl.innerHTML = `<span class="text-[10px] bg-emerald-100 text-emerald-600 px-1 rounded font-bold">OK</span>`;
+            }
+        };
 
         function openDetailView(item, isInventoryItem) {
-            currentViewedBook = item; // Store for Modal
+            currentViewedBook = item; 
             isEditingMode = isInventoryItem;
             currentDocId = item.firestoreId || null;
 
-            // Close charts if open
             document.querySelectorAll('.trend-panel').forEach(p => p.classList.remove('open'));
 
-            // UI Elements
             const els = {
                 isbn: document.getElementById('res-isbn'),
                 title: document.getElementById('res-title'),
@@ -622,43 +571,44 @@
                 ribbon: document.getElementById('inventory-ribbon'),
                 locBadge: document.getElementById('inventory-location-badge'),
                 locText: document.getElementById('res-shelf-pos'),
+                copiesText: document.getElementById('res-copies-badge'),
                 btn: document.getElementById('main-action-btn'),
                 badge: document.getElementById('mode-badge')
             };
 
-            // Common Data
             els.isbn.innerText = item.book.isbn;
             els.title.innerText = item.book.title;
             els.author.innerText = item.book.author;
             els.cover.src = item.book.cover;
 
-            // Market Prices
             document.getElementById('price-amazon').innerText = `€ ${item.book.prices.amazon}`;
             document.getElementById('price-ebay').innerText = `€ ${item.book.prices.ebay}`;
             document.getElementById('price-abebooks').innerText = `€ ${item.book.prices.abebooks}`;
             document.getElementById('res-strategy').innerText = item.book.strategy || "Nessun consiglio disponibile";
 
-            // CONTEXT SWITCHING
+            // POPULATE INPUTS (New Logic)
+            document.getElementById('input-price-amazon').value = item.myPrices?.amazon || "";
+            document.getElementById('input-price-ebay').value = item.myPrices?.ebay || "";
+            document.getElementById('input-price-abebooks').value = item.myPrices?.abebooks || "";
+            
+            // Trigger Diff Calc
+            window.calculateDiff('amazon');
+            window.calculateDiff('ebay');
+            window.calculateDiff('abebooks');
+
             if (isInventoryItem) {
-                // MODE: INVENTORY
                 els.ribbon.classList.remove('hidden');
                 els.locBadge.classList.remove('hidden');
                 els.locText.innerText = `${item.location.shelf}-${item.location.position}`;
+                els.copiesText.innerText = `x${item.copies || 1}`;
                 
-                els.btn.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> <span>Modifica Dati & Prezzi</span>`;
+                els.btn.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> <span>Aggiorna Dati</span>`;
                 els.btn.className = "w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg font-bold transition shadow-lg flex items-center justify-center gap-2";
                 
                 els.badge.innerText = "IN MAGAZZINO";
                 els.badge.className = "px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-800";
                 els.badge.classList.remove('hidden');
-
-                // Render Comparisons
-                renderPriceComparison('amazon', item.book.prices.amazon, item.myPrices?.amazon);
-                renderPriceComparison('ebay', item.book.prices.ebay, item.myPrices?.ebay);
-                renderPriceComparison('abebooks', item.book.prices.abebooks, item.myPrices?.abebooks);
-
             } else {
-                // MODE: NEW SCAN
                 els.ribbon.classList.add('hidden');
                 els.locBadge.classList.add('hidden');
                 
@@ -666,48 +616,9 @@
                 els.btn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-lg font-bold transition shadow-lg flex items-center justify-center gap-2";
                 
                 els.badge.classList.add('hidden');
-
-                // Reset comparisons
-                resetPriceComparison('amazon');
-                resetPriceComparison('ebay');
-                resetPriceComparison('abebooks');
             }
 
             window.showSection('results');
-        }
-
-        function renderPriceComparison(channel, marketPrice, myPrice) {
-            const myEl = document.getElementById(`my-price-${channel}`);
-            const diffEl = document.getElementById(`diff-${channel}`);
-
-            if (!myPrice || myPrice == 0) {
-                myEl.innerText = "Non impostato";
-                myEl.className = "text-gray-400 text-xs italic";
-                diffEl.innerHTML = "";
-                return;
-            }
-
-            const market = parseFloat(marketPrice);
-            const my = parseFloat(myPrice);
-            const diff = my - market;
-
-            myEl.innerText = `€ ${my.toFixed(2)}`;
-            
-            if (diff > 0) {
-                // I'm more expensive (Bad?)
-                myEl.className = "text-red-500 font-bold";
-                diffEl.innerHTML = `<span class="text-[10px] bg-red-100 text-red-600 px-1 rounded">+€${diff.toFixed(2)}</span>`;
-            } else {
-                // I'm cheaper (Good?)
-                myEl.className = "text-emerald-600 font-bold";
-                diffEl.innerHTML = `<span class="text-[10px] bg-emerald-100 text-emerald-600 px-1 rounded">COMPETITIVO</span>`;
-            }
-        }
-
-        function resetPriceComparison(channel) {
-            document.getElementById(`my-price-${channel}`).innerText = "---";
-            document.getElementById(`my-price-${channel}`).className = "text-gray-300";
-            document.getElementById(`diff-${channel}`).innerHTML = "";
         }
 
         // --- FIRESTORE OPERATIONS ---
@@ -718,23 +629,18 @@
             const item = currentViewedBook;
             document.getElementById('modal-book-title').innerText = item.book.title;
 
-            // Pre-fill if editing, clear if new
             if (isEditingMode) {
-                document.getElementById('modal-title').innerText = "Modifica Libro";
-                document.getElementById('modal-save-btn').innerText = "Salva Modifiche";
+                document.getElementById('modal-title').innerText = "Modifica Logistica";
+                document.getElementById('modal-save-btn').innerText = "Salva Tutto";
                 document.getElementById('inv-shelf').value = item.location.shelf;
                 document.getElementById('inv-pos').value = item.location.position;
-                document.getElementById('inv-price-amz').value = item.myPrices?.amazon || "";
-                document.getElementById('inv-price-ebay').value = item.myPrices?.ebay || "";
-                document.getElementById('inv-price-abe').value = item.myPrices?.abebooks || "";
+                document.getElementById('inv-copies').value = item.copies || 1;
             } else {
                 document.getElementById('modal-title').innerText = "Nuovo Inserimento";
-                document.getElementById('modal-save-btn').innerText = "Aggiungi a Magazzino";
+                document.getElementById('modal-save-btn').innerText = "Conferma Inserimento";
                 document.getElementById('inv-shelf').value = "";
                 document.getElementById('inv-pos').value = "";
-                document.getElementById('inv-price-amz').value = "";
-                document.getElementById('inv-price-ebay').value = "";
-                document.getElementById('inv-price-abe').value = "";
+                document.getElementById('inv-copies').value = 1;
             }
 
             document.getElementById('modal-inventory').classList.remove('hidden');
@@ -745,14 +651,18 @@
 
             const shelf = document.getElementById('inv-shelf').value.toUpperCase();
             let pos = document.getElementById('inv-pos').value;
+            let copies = parseInt(document.getElementById('inv-copies').value);
             
             if (shelf.length < 1 || !pos) return alert("Dati posizione mancanti");
+            if (!copies || copies < 1) copies = 1;
+
             pos = pos.toString().padStart(2, '0');
 
+            // READ PRICES FROM MAIN VIEW
             const myPrices = {
-                amazon: document.getElementById('inv-price-amz').value,
-                ebay: document.getElementById('inv-price-ebay').value,
-                abebooks: document.getElementById('inv-price-abe').value
+                amazon: document.getElementById('input-price-amazon').value,
+                ebay: document.getElementById('input-price-ebay').value,
+                abebooks: document.getElementById('input-price-abebooks').value
             };
 
             const inventoryCollection = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory');
@@ -761,17 +671,17 @@
             
             try {
                 if (isEditingMode && currentDocId) {
-                    // UPDATE
                     await updateDoc(doc(inventoryCollection, currentDocId), {
                         location: { shelf, position: pos },
+                        copies: copies,
                         myPrices: myPrices
                     });
                     alert("Aggiornato!");
                 } else {
-                    // CREATE
                     await addDoc(inventoryCollection, {
-                        book: currentViewedBook.book, // Ensure we pass the clean book object
+                        book: currentViewedBook.book,
                         location: { shelf, position: pos },
+                        copies: copies,
                         myPrices: myPrices,
                         dateAdded: new Date().toISOString()
                     });
@@ -779,8 +689,6 @@
                 }
                 
                 window.closeInventoryModal();
-                // After save, we usually assume it's now an inventory item.
-                // Re-process the ISBN to switch the view mode to "Inventory"
                 window.processIsbn(currentViewedBook.book.isbn);
 
             } catch (e) {
@@ -791,9 +699,8 @@
         };
 
         window.deleteItem = async (e, id) => {
-            e.stopPropagation(); // Prevent opening detail when clicking trash
+            e.stopPropagation();
             if(!confirm("Eliminare definitivamente?")) return;
-            
             try {
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory', id));
             } catch(err) {
@@ -813,9 +720,12 @@
 
             container.innerHTML = inventoryData.map(item => `
                 <div onclick="processIsbn('${item.book.isbn}')" class="glass-panel p-3 rounded-xl flex gap-3 items-center shadow-sm mx-1 cursor-pointer hover:bg-white/40 transition">
-                    <div class="bg-gray-800 text-white w-12 h-12 rounded-lg flex flex-col items-center justify-center shrink-0 border border-emerald-500/50">
+                    <div class="bg-gray-800 text-white w-12 h-12 rounded-lg flex flex-col items-center justify-center shrink-0 border border-emerald-500/50 relative">
                         <span class="text-[10px] font-bold text-emerald-400">${item.location.shelf}</span>
                         <span class="text-md font-bold leading-none">${item.location.position}</span>
+                        ${(item.copies && item.copies > 1) ? 
+                            `<div class="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-bold w-5 h-5 flex items-center justify-center rounded-full border border-white">x${item.copies}</div>` 
+                            : ''}
                     </div>
                     <div class="flex-1 overflow-hidden">
                         <h4 class="font-bold text-gray-900 truncate text-sm">${item.book.title}</h4>
@@ -831,7 +741,7 @@
             `).join('');
         }
 
-        // --- GLOBAL HELPERS (attached to window for HTML access) ---
+        // --- GLOBAL HELPERS ---
         window.showSection = (id) => {
             document.getElementById('section-home').classList.add('hidden');
             document.getElementById('section-results').classList.add('hidden');
