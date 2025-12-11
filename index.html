@@ -85,6 +85,17 @@
             max-height: 200px; /* Altezza massima per espansione */
             opacity: 1;
         }
+        
+        /* Shimmer effect for AI loading */
+        .shimmer {
+            background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -130,13 +141,14 @@
                 
                 <div class="glass-panel p-6 rounded-2xl w-full text-center shadow-lg mb-6">
                     <h2 class="text-2xl font-bold mb-2 text-gray-800">Analisi Rapida</h2>
-                    <p class="text-gray-600 mb-6 text-sm">Inquadra ISBN. Se il libro è già nell'inventario, vedrai subito i dettagli.</p>
+                    <p class="text-gray-600 mb-6 text-sm">Inquadra ISBN, scatta una foto alla copertina o cerca per titolo.</p>
 
-                    <div class="relative bg-gray-900 rounded-xl h-64 w-full mb-4 overflow-hidden flex items-center justify-center group cursor-pointer border-2 border-dashed border-gray-400 hover:border-emerald-500 transition" onclick="startCamera()">
+                    <!-- Scanner Box -->
+                    <div class="relative bg-gray-900 rounded-xl h-56 w-full mb-4 overflow-hidden flex items-center justify-center group cursor-pointer border-2 border-dashed border-gray-400 hover:border-emerald-500 transition" onclick="startCamera()">
                         <div id="reader" class="w-full h-full absolute inset-0"></div>
                         <div id="camera-placeholder" class="z-10 text-gray-400 flex flex-col items-center">
-                            <i class="fa-solid fa-camera text-4xl mb-2 group-hover:text-emerald-400 transition"></i>
-                            <span class="text-sm">Tocca per scansionare</span>
+                            <i class="fa-solid fa-barcode text-4xl mb-2 group-hover:text-emerald-400 transition"></i>
+                            <span class="text-sm">Tocca per barcode</span>
                         </div>
                         <div id="scan-overlay" class="hidden absolute inset-0 pointer-events-none z-20">
                             <div class="scan-line"></div>
@@ -144,16 +156,34 @@
                         </div>
                     </div>
 
-                    <div class="flex gap-2">
-                        <input type="text" id="isbn-input" placeholder="ISBN Manuale" class="flex-1 p-3 rounded-lg border border-gray-300 focus:outline-none focus:border-emerald-500 text-lg">
-                        <button onclick="manualSearch()" class="bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-lg transition shadow-md w-14 flex items-center justify-center">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </button>
-                    </div>
+                    <!-- Actions Grid -->
+                     <div class="grid grid-cols-5 gap-2 w-full">
+                        <!-- Cover Photo Button -->
+                         <div class="col-span-1">
+                             <input type="file" accept="image/*" capture="environment" id="cover-upload" class="hidden" onchange="handleCoverUpload(event)">
+                             <button onclick="document.getElementById('cover-upload').click()" class="w-full h-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center shadow-md transition" title="Scansiona Copertina">
+                                 <i class="fa-solid fa-camera"></i>
+                             </button>
+                         </div>
+
+                         <!-- Manual Input -->
+                         <div class="col-span-3">
+                             <input type="text" id="search-input" placeholder="ISBN o Titolo..." class="w-full h-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:border-emerald-500 text-center font-semibold text-gray-700">
+                         </div>
+
+                         <!-- Search Button -->
+                         <div class="col-span-1">
+                             <button onclick="manualSearch()" class="w-full h-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition shadow-md flex items-center justify-center">
+                                 <i class="fa-solid fa-magnifying-glass"></i>
+                             </button>
+                         </div>
+                     </div>
+                     
                 </div>
 
+                <!-- Simulation Button -->
                 <button onclick="simulateScan()" class="bg-white/90 hover:bg-white text-emerald-700 font-semibold py-2 px-6 rounded-full shadow-lg text-sm transition transform hover:scale-105">
-                    <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Simula Scansione
+                    <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Demo
                 </button>
             </div>
 
@@ -176,7 +206,12 @@
 
                     <img id="book-cover" src="" alt="Book Cover" class="w-24 h-36 object-cover rounded shadow-sm bg-gray-200">
                     <div class="flex-1">
-                        <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-0.5 rounded-full mb-2 inline-block">ISBN: <span id="res-isbn"></span></span>
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-0.5 rounded-full inline-block">ID: <span id="res-isbn"></span></span>
+                            <!-- Badge condizione -->
+                            <span id="res-condition-badge" class="hidden bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded border border-gray-300 font-bold uppercase"></span>
+                        </div>
+                        
                         <h2 id="res-title" class="font-bold text-lg leading-tight mb-1 text-gray-900">Titolo Libro</h2>
                         <p id="res-author" class="text-gray-600 text-sm mb-3">Autore</p>
                         
@@ -293,14 +328,19 @@
 
                 </div>
 
-                <!-- Action Bar -->
+                <!-- Action Bar with GEMINI -->
                 <div class="glass-dark p-4 rounded-xl shadow-lg mt-2 flex flex-col gap-3">
-                    <div id="strategy-box">
-                         <div class="flex items-center gap-2 mb-2">
-                            <i class="fa-solid fa-robot text-emerald-400"></i>
-                            <h3 class="font-bold text-white text-xs uppercase">AI Insight</h3>
+                    <div id="strategy-box" class="relative">
+                         <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-robot text-emerald-400"></i>
+                                <h3 class="font-bold text-white text-xs uppercase">BookScout AI Insight</h3>
+                            </div>
+                            <button onclick="analyzeWithGemini()" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded-full transition shadow-lg flex items-center gap-1">
+                                <i class="fa-solid fa-sparkles"></i> Chiedi a Gemini
+                            </button>
                         </div>
-                        <p class="text-sm text-gray-300 italic" id="res-strategy">Analisi...</p>
+                        <p class="text-sm text-gray-300 italic min-h-[3rem]" id="res-strategy">Clicca "Chiedi a Gemini" per analizzare il mercato...</p>
                     </div>
 
                     <button id="main-action-btn" onclick="openInventoryModal()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-lg font-bold transition shadow-lg flex items-center justify-center gap-2">
@@ -312,16 +352,35 @@
 
              <!-- SECTION: INVENTORY LIST -->
              <div id="section-inventory" class="hidden flex-col h-full fade-in">
-                <div class="flex justify-between items-end mb-4 px-2">
+                <div class="flex justify-between items-end mb-4 px-2 pt-2">
                     <h2 class="text-2xl font-bold text-white shadow-black drop-shadow-md">Magazzino</h2>
                     <span class="text-xs text-white bg-emerald-600 px-2 py-1 rounded-full" id="inventory-count">0</span>
                 </div>
 
-                <div id="inventory-list" class="flex-1 space-y-3 pb-20 overflow-y-auto">
+                <!-- Search Inventory -->
+                <div class="px-2 mb-2">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400"></i>
+                        <input type="text" id="inventory-search" oninput="updateInventoryView()" placeholder="Cerca titolo o scaffale..." class="w-full pl-10 pr-4 py-2 rounded-xl border-none bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:bg-white/30 backdrop-blur-sm shadow-inner transition">
+                    </div>
+                </div>
+
+                <div id="inventory-list" class="flex-1 space-y-3 pb-2 overflow-y-auto">
                    <!-- Populated by Firestore -->
                    <div class="text-center text-white mt-10">
                        <i class="fa-solid fa-circle-notch fa-spin"></i> Caricamento...
                    </div>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div id="pagination-controls" class="hidden flex justify-between items-center px-4 py-2 glass-panel rounded-xl mt-2 mx-1 mb-20 shrink-0">
+                    <button onclick="changePage(-1)" id="prev-page" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <span id="page-indicator" class="text-xs font-bold text-gray-700">Pagina 1 di 1</span>
+                    <button onclick="changePage(1)" id="next-page" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
                 </div>
              </div>
 
@@ -333,7 +392,7 @@
             <p class="animate-pulse" id="loading-text">Elaborazione...</p>
         </div>
 
-        <!-- Add/Edit Modal (SIMPLIFIED) -->
+        <!-- Add/Edit Modal (With Gemini) -->
         <div id="modal-inventory" class="hidden absolute inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm fade-in">
             <div class="bg-white w-full max-w-sm p-6 rounded-t-2xl sm:rounded-2xl shadow-2xl animate-slide-up flex flex-col max-h-[90vh]">
                 <div class="flex justify-between items-center mb-4 shrink-0">
@@ -346,6 +405,30 @@
                         <i class="fa-solid fa-book mr-1"></i> <span id="modal-book-title" class="font-semibold"></span>
                     </p>
     
+                    <div class="mb-4">
+                        <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Stato di Conservazione</h4>
+                        <select id="inv-condition" onchange="toggleConditionInput()" class="w-full p-2 border border-gray-200 rounded-lg text-sm bg-white focus:border-emerald-500 outline-none font-medium text-gray-700">
+                            <option value="Nuovo">Nuovo</option>
+                            <option value="Come Nuovo">Come Nuovo</option>
+                            <option value="Ottimo">Ottimo</option>
+                            <option value="Buono">Buono</option>
+                            <option value="Accettabile">Accettabile</option>
+                            <option value="Altro">Altro (descrivi)</option>
+                        </select>
+                        <input type="text" id="inv-condition-custom" class="w-full mt-2 p-2 border border-gray-200 rounded-lg text-sm hidden focus:border-emerald-500 outline-none" placeholder="Es. Copertina strappata, dedica...">
+                        
+                        <!-- GEMINI DESCRIPTION GENERATOR -->
+                        <div class="mt-3">
+                            <label class="text-[10px] text-gray-400 mb-1 flex justify-between items-center">
+                                <span>Note di Vendita</span>
+                                <button onclick="generateDescriptionWithGemini()" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> Genera con IA
+                                </button>
+                            </label>
+                            <textarea id="inv-notes" rows="3" class="w-full p-2 border border-gray-200 rounded-lg text-sm focus:border-emerald-500 outline-none" placeholder="Descrizione dettagliata del libro..."></textarea>
+                        </div>
+                    </div>
+
                     <div class="mb-4">
                         <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Collocazione & Copie</h4>
                         <div class="flex gap-3">
@@ -382,6 +465,97 @@
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
+        // --- GEMINI API ---
+        const apiKey = ""; // Provided by env
+
+        async function callGemini(prompt) {
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+                
+                if (!response.ok) throw new Error('API Error');
+                const data = await response.json();
+                return data.candidates?.[0]?.content?.parts?.[0]?.text || "Errore nella generazione.";
+            } catch (error) {
+                console.error("Gemini Error:", error);
+                return "Servizio momentaneamente non disponibile.";
+            }
+        }
+
+        window.analyzeWithGemini = async () => {
+            if(!currentViewedBook) return;
+            const btn = document.querySelector('#strategy-box button');
+            const output = document.getElementById('res-strategy');
+            const originalIcon = btn.innerHTML;
+            
+            // Loading State
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Analisi...`;
+            btn.disabled = true;
+            output.className = "text-sm text-gray-300 italic min-h-[3rem] shimmer rounded p-2";
+            output.innerText = ""; // Clear text for shimmer effect
+
+            // Build Prompt
+            const book = currentViewedBook.book;
+            const cond = currentViewedBook.condition || "Buono";
+            const prompt = `
+            Sei un esperto libraio antiquario e di libri usati. Analizza questo libro e dammi una strategia di vendita.
+            
+            LIBRO: ${book.title} di ${book.author}
+            ISBN: ${book.isbn}
+            CONDIZIONI: ${cond}
+            
+            PREZZI DI MERCATO ATTUALI:
+            - Amazon: ${book.prices.amazon}
+            - eBay: ${book.prices.ebay}
+            - AbeBooks: ${book.prices.abebooks}
+            
+            Rispondi in massimo 3 frasi brevi. Consiglia un prezzo di vendita competitivo e su quale canale puntare (Arbitraggio, Vendita Diretta, etc). Sii diretto.
+            `;
+
+            const result = await callGemini(prompt);
+            
+            // Restore State
+            output.className = "text-sm text-gray-200 leading-relaxed";
+            output.innerText = result;
+            btn.innerHTML = originalIcon;
+            btn.disabled = false;
+        };
+
+        window.generateDescriptionWithGemini = async () => {
+            if(!currentViewedBook) return;
+            const field = document.getElementById('inv-notes');
+            const btn = document.querySelector('label button');
+            const originalText = btn.innerHTML;
+
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Generazione...`;
+            field.placeholder = "L'IA sta scrivendo per te...";
+            
+            const book = currentViewedBook.book;
+            // Get current condition from inputs
+            let cond = document.getElementById('inv-condition').value;
+            if (cond === 'Altro') cond = document.getElementById('inv-condition-custom').value;
+
+            const prompt = `
+            Scrivi una breve nota di vendita accattivante (max 30 parole) per questo libro usato da inserire nell'inventario.
+            Titolo: ${book.title}
+            Autore: ${book.author}
+            Condizioni: ${cond}
+            
+            Usa un tono professionale ma persuasivo. Menziona le condizioni se sono ottime.
+            `;
+
+            const result = await callGemini(prompt);
+            
+            field.value = result.trim();
+            btn.innerHTML = originalText;
+        };
+
+
         // --- FIREBASE SETUP ---
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
@@ -390,12 +564,14 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         let currentUser = null;
-        let inventoryData = []; 
+        let allInventory = []; 
         let currentViewedBook = null; 
         let isEditingMode = false; 
-        let currentDocId = null; 
+        let currentDocId = null;
+        
+        let currentPage = 1;
+        const ITEMS_PER_PAGE = 10;
 
-        // Auth & Init
         const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -420,74 +596,188 @@
                 
                 const q = query(collection(db, 'artifacts', appId, 'users', user.uid, 'inventory'));
                 onSnapshot(q, (snapshot) => {
-                    inventoryData = snapshot.docs.map(doc => ({
+                    allInventory = snapshot.docs.map(doc => ({
                         firestoreId: doc.id,
                         ...doc.data()
                     }));
-                    renderInventoryList();
+                    updateInventoryView(); 
                 }, (error) => {
                     console.error("Firestore Error:", error);
                 });
             }
         });
 
+        // --- INVENTORY VIEW LOGIC ---
+        
+        window.updateInventoryView = () => {
+            const searchTerm = document.getElementById('inventory-search').value.toLowerCase().trim();
+            const container = document.getElementById('inventory-list');
+            const countEl = document.getElementById('inventory-count');
+            const controls = document.getElementById('pagination-controls');
+
+            let filtered = allInventory.filter(item => {
+                const titleMatch = item.book.title.toLowerCase().includes(searchTerm);
+                const shelfMatch = (item.location.shelf + item.location.position).toLowerCase().includes(searchTerm);
+                const shelfOnlyMatch = item.location.shelf.toLowerCase().includes(searchTerm);
+                return titleMatch || shelfMatch || shelfOnlyMatch;
+            });
+
+            filtered.sort((a, b) => {
+                const dateA = a.dateAdded || ""; 
+                const dateB = b.dateAdded || "";
+                return dateB.localeCompare(dateA);
+            });
+
+            countEl.innerText = filtered.length;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="glass-panel p-6 text-center text-gray-500 rounded-xl m-4">Nessun libro trovato.</div>`;
+                controls.classList.add('hidden');
+                return;
+            }
+
+            const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+            if(currentPage > totalPages) currentPage = 1;
+            if(currentPage < 1) currentPage = 1;
+
+            const start = (currentPage - 1) * ITEMS_PER_PAGE;
+            const paginatedItems = filtered.slice(start, start + ITEMS_PER_PAGE);
+
+            container.innerHTML = paginatedItems.map(item => {
+                const cond = item.condition || "Buono";
+                let condColor = "bg-gray-100 text-gray-500";
+                if(cond.includes("Nuovo") || cond.includes("Ottimo")) condColor = "bg-emerald-100 text-emerald-700";
+                else if(cond.includes("Accettabile") || cond.includes("Danneggiato")) condColor = "bg-orange-100 text-orange-700";
+                const displayCond = cond.length > 10 ? cond.substring(0,8) + ".." : cond;
+
+                return `
+                <div onclick="processSearch('${item.book.isbn === "NO-ISBN" ? item.book.title : item.book.isbn}')" class="glass-panel p-3 rounded-xl flex gap-3 items-center shadow-sm mx-1 cursor-pointer hover:bg-white/40 transition">
+                    <div class="bg-gray-800 text-white w-12 h-12 rounded-lg flex flex-col items-center justify-center shrink-0 border border-emerald-500/50 relative">
+                        <span class="text-[10px] font-bold text-emerald-400">${item.location.shelf}</span>
+                        <span class="text-md font-bold leading-none">${item.location.position}</span>
+                        ${(item.copies && item.copies > 1) ? 
+                            `<div class="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-bold w-5 h-5 flex items-center justify-center rounded-full border border-white">x${item.copies}</div>` 
+                            : ''}
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-gray-900 truncate text-sm max-w-[70%]">${item.book.title}</h4>
+                            <span class="text-[9px] px-1.5 rounded font-bold uppercase ${condColor}">${displayCond}</span>
+                        </div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-[10px] bg-gray-200 text-gray-600 px-1.5 rounded">Mkt: €${item.book.prices.amazon}</span>
+                            ${item.myPrices?.amazon ? `<span class="text-[10px] bg-blue-100 text-blue-700 px-1.5 rounded font-bold">Tu: €${item.myPrices.amazon}</span>` : ''}
+                        </div>
+                    </div>
+                    <button onclick="deleteItem(event, '${item.firestoreId}')" class="w-8 h-8 rounded-full bg-red-100 text-red-500 hover:bg-red-200 flex items-center justify-center transition shrink-0 ml-1">
+                        <i class="fa-solid fa-trash-can text-sm"></i>
+                    </button>
+                </div>
+            `}).join('');
+
+            controls.classList.remove('hidden');
+            document.getElementById('page-indicator').innerText = `Pagina ${currentPage} di ${totalPages}`;
+            document.getElementById('prev-page').disabled = currentPage === 1;
+            document.getElementById('next-page').disabled = currentPage === totalPages;
+        }
+
+        window.changePage = (delta) => {
+            currentPage += delta;
+            updateInventoryView();
+            document.getElementById('inventory-list').scrollTop = 0;
+        }
+
         // --- CORE LOGIC ---
 
         window.manualSearch = () => {
-            const isbn = document.getElementById('isbn-input').value;
-            if(isbn.length > 3) processIsbn(isbn);
-            else alert("ISBN troppo corto");
+            const query = document.getElementById('search-input').value;
+            if(query.length > 2) processSearch(query);
+            else alert("Inserisci almeno 3 caratteri");
         };
+
+        window.handleCoverUpload = (event) => {
+            const file = event.target.files[0];
+            if(file) {
+                showLoader(true, "Analisi IA Copertina...");
+                setTimeout(() => {
+                    showLoader(false);
+                    let recognizedTitle = prompt("Simulazione OCR: Il servizio ha rilevato un testo incerto. Inserisci il titolo corretto:", "Divina Commedia");
+                    if(recognizedTitle) {
+                        document.getElementById('search-input').value = recognizedTitle;
+                        processSearch(recognizedTitle);
+                    }
+                }, 1500);
+            }
+        }
 
         window.simulateScan = () => {
-            const r = Math.floor(Math.random() * 1000);
-            processIsbn("978-DEMO-" + r);
+            const demoQueries = ["9788845247486", "Il Signore degli Anelli", "1984 Orwell", "9780201633610"];
+            const randomQ = demoQueries[Math.floor(Math.random() * demoQueries.length)];
+            document.getElementById('search-input').value = randomQ; 
+            processSearch(randomQ);
         };
 
-        window.processIsbn = async (isbn) => {
-            showLoader(true, "Ricerca dati reali...");
-            const cleanIsbn = isbn.replace(/-/g, "");
+        window.processSearch = async (queryInput) => {
+            showLoader(true, "Ricerca dati...");
+            const rawInput = queryInput.trim();
+            const isIsbn = /^[\d-X]{10,17}$/i.test(rawInput);
+            const cleanQuery = isIsbn ? rawInput.replace(/[^0-9X]/gi, "") : rawInput;
 
-            const existingItem = inventoryData.find(item => item.book.isbn.replace(/-/g, "") === cleanIsbn);
+            let existingItem = null;
+            if (isIsbn) {
+                existingItem = allInventory.find(item => item.book.isbn.replace(/[^0-9X]/gi, "") === cleanQuery);
+            } else {
+                existingItem = allInventory.find(item => item.book.title.toLowerCase().includes(cleanQuery.toLowerCase()));
+            }
 
             if (existingItem) {
                 showLoader(false);
                 openDetailView(existingItem, true);
             } else {
                 try {
-                    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${cleanIsbn}`);
+                    const apiQuery = isIsbn ? `isbn:${cleanQuery}` : `intitle:${encodeURIComponent(cleanQuery)}`;
+                    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${apiQuery}&maxResults=1`);
                     const data = await response.json();
 
                     if (data.totalItems > 0) {
                         const info = data.items[0].volumeInfo;
+                        let bookId = "NO-ISBN";
+                        if(info.industryIdentifiers) {
+                            const isbnObj = info.industryIdentifiers.find(i => i.type === "ISBN_13") || info.industryIdentifiers[0];
+                            bookId = isbnObj.identifier;
+                        } else {
+                            bookId = data.items[0].id; 
+                        }
+
                         const realBook = {
-                            isbn: cleanIsbn,
+                            isbn: bookId,
                             title: info.title || "Titolo sconosciuto",
                             author: info.authors ? info.authors[0] : "Autore sconosciuto",
                             cover: info.imageLinks ? info.imageLinks.thumbnail.replace('http://', 'https://') : "https://via.placeholder.com/150x200?text=No+Cover",
-                            prices: { amazon: "12.50", ebay: "9.90", abebooks: "15.00" }, // Simulated for demo diff
+                            prices: { amazon: "Vedi", ebay: "Vedi", abebooks: "Vedi" }, 
                             links: {
-                                amazon: `https://www.amazon.it/s?k=${cleanIsbn}`,
-                                ebay: `https://www.ebay.it/sch/i.html?_nkw=${cleanIsbn}`,
-                                abebooks: `https://www.abebooks.it/servlet/SearchResults?isbn=${cleanIsbn}`
+                                amazon: `https://www.amazon.it/s?k=${encodeURIComponent(bookId !== "NO-ISBN" ? bookId : info.title)}`,
+                                ebay: `https://www.ebay.it/sch/i.html?_nkw=${encodeURIComponent(bookId !== "NO-ISBN" ? bookId : info.title)}`,
+                                abebooks: `https://www.abebooks.it/servlet/SearchResults?${bookId !== "NO-ISBN" ? 'isbn='+bookId : 'tn='+encodeURIComponent(info.title)}`
                             },
-                            strategy: "Dati recuperati da Google Books.",
+                            strategy: null, // Reset strategy
                             history: {
-                                amazon: [10, 12, 11, 13, 12, 14],
-                                ebay: [8, 9, 8, 7, 8, 9],
-                                abebooks: [15, 15, 14, 14, 13, 13]
+                                amazon: [10, 10, 10, 10, 10, 10], 
+                                ebay: [8, 8, 8, 8, 8, 8],
+                                abebooks: [15, 15, 15, 15, 15, 15]
                             }
                         };
                         showLoader(false);
                         openDetailView({ book: realBook }, false);
 
                     } else {
-                        throw new Error("Libro non trovato");
+                        showLoader(false);
+                        alert("Nessun libro trovato.");
                     }
                 } catch (error) {
                     console.error(error);
                     showLoader(false);
-                    alert("Libro non trovato o errore di rete.");
+                    alert("Errore di rete o API.");
                 }
             }
         };
@@ -541,11 +831,10 @@
                 return;
             }
 
-            // Simple parsing, assuming marketVal is numeric string for now
             const mkt = parseFloat(marketVal); 
             const my = parseFloat(inputVal);
 
-            if(isNaN(mkt)) return; // If market price is "Vedi Link", skip diff
+            if(isNaN(mkt)) return; 
 
             const diff = my - mkt;
             
@@ -572,8 +861,10 @@
                 locBadge: document.getElementById('inventory-location-badge'),
                 locText: document.getElementById('res-shelf-pos'),
                 copiesText: document.getElementById('res-copies-badge'),
+                conditionBadge: document.getElementById('res-condition-badge'),
                 btn: document.getElementById('main-action-btn'),
-                badge: document.getElementById('mode-badge')
+                badge: document.getElementById('mode-badge'),
+                strategy: document.getElementById('res-strategy')
             };
 
             els.isbn.innerText = item.book.isbn;
@@ -581,17 +872,18 @@
             els.author.innerText = item.book.author;
             els.cover.src = item.book.cover;
 
-            document.getElementById('price-amazon').innerText = `€ ${item.book.prices.amazon}`;
-            document.getElementById('price-ebay').innerText = `€ ${item.book.prices.ebay}`;
-            document.getElementById('price-abebooks').innerText = `€ ${item.book.prices.abebooks}`;
-            document.getElementById('res-strategy').innerText = item.book.strategy || "Nessun consiglio disponibile";
+            document.getElementById('price-amazon').innerText = isNaN(parseFloat(item.book.prices.amazon)) ? item.book.prices.amazon : `€ ${item.book.prices.amazon}`;
+            document.getElementById('price-ebay').innerText = isNaN(parseFloat(item.book.prices.ebay)) ? item.book.prices.ebay : `€ ${item.book.prices.ebay}`;
+            document.getElementById('price-abebooks').innerText = isNaN(parseFloat(item.book.prices.abebooks)) ? item.book.prices.abebooks : `€ ${item.book.prices.abebooks}`;
+            
+            // AI Strategy Reset or Show
+            els.strategy.innerText = "Clicca 'Chiedi a Gemini' per analizzare il mercato...";
+            els.strategy.className = "text-sm text-gray-300 italic min-h-[3rem]"; // Reset class
 
-            // POPULATE INPUTS (New Logic)
             document.getElementById('input-price-amazon').value = item.myPrices?.amazon || "";
             document.getElementById('input-price-ebay').value = item.myPrices?.ebay || "";
             document.getElementById('input-price-abebooks').value = item.myPrices?.abebooks || "";
             
-            // Trigger Diff Calc
             window.calculateDiff('amazon');
             window.calculateDiff('ebay');
             window.calculateDiff('abebooks');
@@ -602,19 +894,26 @@
                 els.locText.innerText = `${item.location.shelf}-${item.location.position}`;
                 els.copiesText.innerText = `x${item.copies || 1}`;
                 
+                const cond = item.condition || "Buono";
+                let condColor = "bg-gray-100 text-gray-600";
+                if(cond === "Nuovo" || cond === "Come Nuovo" || cond === "Ottimo") condColor = "bg-emerald-100 text-emerald-800 border-emerald-200";
+                else if(cond === "Accettabile" || cond === "Danneggiato") condColor = "bg-orange-100 text-orange-800 border-orange-200";
+                
+                els.conditionBadge.innerText = cond.length > 20 ? cond.substring(0, 18) + '...' : cond;
+                els.conditionBadge.className = `hidden ${condColor} text-[10px] px-2 py-0.5 rounded border font-bold uppercase ml-2`;
+                els.conditionBadge.classList.remove('hidden');
+
                 els.btn.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> <span>Aggiorna Dati</span>`;
                 els.btn.className = "w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg font-bold transition shadow-lg flex items-center justify-center gap-2";
-                
                 els.badge.innerText = "IN MAGAZZINO";
                 els.badge.className = "px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-800";
                 els.badge.classList.remove('hidden');
             } else {
                 els.ribbon.classList.add('hidden');
                 els.locBadge.classList.add('hidden');
-                
+                els.conditionBadge.classList.add('hidden');
                 els.btn.innerHTML = `<i class="fa-solid fa-plus"></i> <span>Aggiungi a Inventario</span>`;
                 els.btn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-lg font-bold transition shadow-lg flex items-center justify-center gap-2";
-                
                 els.badge.classList.add('hidden');
             }
 
@@ -623,9 +922,15 @@
 
         // --- FIRESTORE OPERATIONS ---
 
+        window.toggleConditionInput = () => {
+            const val = document.getElementById('inv-condition').value;
+            const customInput = document.getElementById('inv-condition-custom');
+            if(val === 'Altro') customInput.classList.remove('hidden');
+            else customInput.classList.add('hidden');
+        };
+
         window.openInventoryModal = () => {
             if(!currentViewedBook) return;
-            
             const item = currentViewedBook;
             document.getElementById('modal-book-title').innerText = item.book.title;
 
@@ -635,14 +940,33 @@
                 document.getElementById('inv-shelf').value = item.location.shelf;
                 document.getElementById('inv-pos').value = item.location.position;
                 document.getElementById('inv-copies').value = item.copies || 1;
+                document.getElementById('inv-notes').value = item.notes || ""; // Load notes
+                
+                const savedCond = item.condition || "Buono";
+                const select = document.getElementById('inv-condition');
+                const customInput = document.getElementById('inv-condition-custom');
+                const options = Array.from(select.options).map(o => o.value).filter(v => v !== 'Altro');
+                
+                if (options.includes(savedCond)) {
+                    select.value = savedCond;
+                    customInput.value = "";
+                    customInput.classList.add('hidden');
+                } else {
+                    select.value = 'Altro';
+                    customInput.value = savedCond;
+                    customInput.classList.remove('hidden');
+                }
             } else {
                 document.getElementById('modal-title').innerText = "Nuovo Inserimento";
                 document.getElementById('modal-save-btn').innerText = "Conferma Inserimento";
                 document.getElementById('inv-shelf').value = "";
                 document.getElementById('inv-pos').value = "";
                 document.getElementById('inv-copies').value = 1;
+                document.getElementById('inv-condition').value = "Buono";
+                document.getElementById('inv-notes').value = ""; // Clear notes
+                document.getElementById('inv-condition-custom').value = "";
+                document.getElementById('inv-condition-custom').classList.add('hidden');
             }
-
             document.getElementById('modal-inventory').classList.remove('hidden');
         };
 
@@ -652,13 +976,19 @@
             const shelf = document.getElementById('inv-shelf').value.toUpperCase();
             let pos = document.getElementById('inv-pos').value;
             let copies = parseInt(document.getElementById('inv-copies').value);
+            const notes = document.getElementById('inv-notes').value;
             
+            let condition = document.getElementById('inv-condition').value;
+            if (condition === 'Altro') {
+                condition = document.getElementById('inv-condition-custom').value;
+                if(!condition) condition = "Altro"; 
+            }
+
             if (shelf.length < 1 || !pos) return alert("Dati posizione mancanti");
             if (!copies || copies < 1) copies = 1;
 
             pos = pos.toString().padStart(2, '0');
 
-            // READ PRICES FROM MAIN VIEW
             const myPrices = {
                 amazon: document.getElementById('input-price-amazon').value,
                 ebay: document.getElementById('input-price-ebay').value,
@@ -674,7 +1004,9 @@
                     await updateDoc(doc(inventoryCollection, currentDocId), {
                         location: { shelf, position: pos },
                         copies: copies,
-                        myPrices: myPrices
+                        condition: condition,
+                        myPrices: myPrices,
+                        notes: notes
                     });
                     alert("Aggiornato!");
                 } else {
@@ -682,14 +1014,21 @@
                         book: currentViewedBook.book,
                         location: { shelf, position: pos },
                         copies: copies,
+                        condition: condition,
                         myPrices: myPrices,
+                        notes: notes,
                         dateAdded: new Date().toISOString()
                     });
                     alert("Salvato in Cloud!");
                 }
                 
                 window.closeInventoryModal();
-                window.processIsbn(currentViewedBook.book.isbn);
+                // Refresh logic
+                document.getElementById('inventory-search').value = ""; 
+                window.updateInventoryView(); 
+                window.showSection('inventory'); 
+                
+                showLoader(false);
 
             } catch (e) {
                 console.error(e);
@@ -708,46 +1047,17 @@
             }
         };
 
-        // --- RENDER LIST ---
-        function renderInventoryList() {
-            const container = document.getElementById('inventory-list');
-            document.getElementById('inventory-count').innerText = inventoryData.length;
-
-            if (inventoryData.length === 0) {
-                container.innerHTML = `<div class="glass-panel p-6 text-center text-gray-500 rounded-xl m-4">Inventario Vuoto</div>`;
-                return;
-            }
-
-            container.innerHTML = inventoryData.map(item => `
-                <div onclick="processIsbn('${item.book.isbn}')" class="glass-panel p-3 rounded-xl flex gap-3 items-center shadow-sm mx-1 cursor-pointer hover:bg-white/40 transition">
-                    <div class="bg-gray-800 text-white w-12 h-12 rounded-lg flex flex-col items-center justify-center shrink-0 border border-emerald-500/50 relative">
-                        <span class="text-[10px] font-bold text-emerald-400">${item.location.shelf}</span>
-                        <span class="text-md font-bold leading-none">${item.location.position}</span>
-                        ${(item.copies && item.copies > 1) ? 
-                            `<div class="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-bold w-5 h-5 flex items-center justify-center rounded-full border border-white">x${item.copies}</div>` 
-                            : ''}
-                    </div>
-                    <div class="flex-1 overflow-hidden">
-                        <h4 class="font-bold text-gray-900 truncate text-sm">${item.book.title}</h4>
-                        <div class="flex items-center gap-2 mt-1">
-                            <span class="text-[10px] bg-gray-200 text-gray-600 px-1.5 rounded">Mkt: €${item.book.prices.amazon}</span>
-                            ${item.myPrices?.amazon ? `<span class="text-[10px] bg-blue-100 text-blue-700 px-1.5 rounded font-bold">Tu: €${item.myPrices.amazon}</span>` : ''}
-                        </div>
-                    </div>
-                    <button onclick="deleteItem(event, '${item.firestoreId}')" class="w-8 h-8 rounded-full bg-red-100 text-red-500 hover:bg-red-200 flex items-center justify-center transition shrink-0 ml-1">
-                        <i class="fa-solid fa-trash-can text-sm"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
-
         // --- GLOBAL HELPERS ---
         window.showSection = (id) => {
             document.getElementById('section-home').classList.add('hidden');
             document.getElementById('section-results').classList.add('hidden');
             document.getElementById('section-inventory').classList.add('hidden');
             document.getElementById('section-' + id).classList.remove('hidden');
-            if(id === 'inventory') renderInventoryList();
+            if(id === 'inventory') {
+                currentPage = 1;
+                document.getElementById('inventory-search').value = "";
+                updateInventoryView();
+            }
         };
 
         window.toggleMenu = () => {
@@ -781,7 +1091,7 @@
                          document.getElementById('camera-placeholder').classList.remove('hidden');
                          document.getElementById('scan-overlay').classList.add('hidden');
                          html5QrCode.clear();
-                         window.processIsbn(decodedText);
+                         window.processSearch(decodedText);
                     });
                 }
              ).catch(err => {
