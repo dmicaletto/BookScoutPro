@@ -110,9 +110,14 @@
                 <i class="fa-solid fa-book-open-reader text-emerald-400 text-xl"></i>
                 <h1 class="font-bold text-lg tracking-wide">BookScout Cloud</h1>
             </div>
-            <button onclick="toggleMenu()" class="text-white hover:text-emerald-400 transition">
-                <i class="fa-solid fa-bars text-xl"></i>
-            </button>
+            <div class="flex gap-3">
+                <button onclick="resetApiKey()" class="text-gray-400 hover:text-white text-xs" title="Reset API Key">
+                    <i class="fa-solid fa-key"></i>
+                </button>
+                <button onclick="toggleMenu()" class="text-white hover:text-emerald-400 transition">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
         </header>
 
         <!-- Menu Laterale -->
@@ -465,12 +470,35 @@
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // --- GEMINI API ---
-        const apiKey = "AIzaSyBgCLwVJHm3GHSVopl4js0tCeRN0SuAig0"; // Provided by env
+        // --- GOOGLE API & GEMINI ---
+        const geminiApiKey = "AIzaSyBgCLwVJHm3GHSVopl4js0tCeRN0SuAig0"; // For system prompt only, user key used for Vision
+        
+        // Function to manage Google API Key securely in local storage
+        let googleUserApiKey = localStorage.getItem('google_vision_key') || "";
+
+        window.resetApiKey = () => {
+            if(confirm("Vuoi cambiare la tua API Key di Google?")) {
+                localStorage.removeItem('google_vision_key');
+                googleUserApiKey = "";
+                alert("Key rimossa. Ti verrà richiesta al prossimo utilizzo della fotocamera.");
+            }
+        };
+
+        const getGoogleKey = () => {
+            if (googleUserApiKey) return googleUserApiKey;
+            const key = prompt("Inserisci la tua Google API Key per usare il riconoscimento immagini (Vision API):");
+            if (key) {
+                googleUserApiKey = key;
+                localStorage.setItem('google_vision_key', key);
+                return key;
+            }
+            return null;
+        };
 
         async function callGemini(prompt) {
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                // Using standard env key for text gen if available, else could fall back to user key if enabled
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -493,13 +521,11 @@
             const output = document.getElementById('res-strategy');
             const originalIcon = btn.innerHTML;
             
-            // Loading State
             btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Analisi...`;
             btn.disabled = true;
             output.className = "text-sm text-gray-300 italic min-h-[3rem] shimmer rounded p-2";
-            output.innerText = ""; // Clear text for shimmer effect
+            output.innerText = ""; 
 
-            // Build Prompt
             const book = currentViewedBook.book;
             const cond = currentViewedBook.condition || "Buono";
             const prompt = `
@@ -519,7 +545,6 @@
 
             const result = await callGemini(prompt);
             
-            // Restore State
             output.className = "text-sm text-gray-200 leading-relaxed";
             output.innerText = result;
             btn.innerHTML = originalIcon;
@@ -536,7 +561,6 @@
             field.placeholder = "L'IA sta scrivendo per te...";
             
             const book = currentViewedBook.book;
-            // Get current condition from inputs
             let cond = document.getElementById('inv-condition').value;
             if (cond === 'Altro') cond = document.getElementById('inv-condition-custom').value;
 
@@ -570,7 +594,7 @@
         };
         
         // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
+        const app = initializeApp(firebaseConfig);;
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -707,19 +731,65 @@
             else alert("Inserisci almeno 3 caratteri");
         };
 
-        window.handleCoverUpload = (event) => {
+        window.handleCoverUpload = async (event) => {
             const file = event.target.files[0];
-            if(file) {
-                showLoader(true, "Analisi IA Copertina...");
-                setTimeout(() => {
-                    showLoader(false);
-                    let recognizedTitle = prompt("Simulazione OCR: Il servizio ha rilevato un testo incerto. Inserisci il titolo corretto:", "Divina Commedia");
-                    if(recognizedTitle) {
-                        document.getElementById('search-input').value = recognizedTitle;
-                        processSearch(recognizedTitle);
-                    }
-                }, 1500);
+            if(!file) return;
+
+            // 1. Get Key
+            const userKey = getGoogleKey();
+            if(!userKey) {
+                alert("API Key necessaria per l'analisi copertina.");
+                return;
             }
+
+            showLoader(true, "Lettura Copertina (Vision API)...");
+
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                const base64Data = reader.result.split(',')[1]; // Remove data:image/... base64 header
+
+                try {
+                    // 2. Call Google Cloud Vision API
+                    const response = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${userKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            requests: [{
+                                image: { content: base64Data },
+                                features: [{ type: 'TEXT_DETECTION', maxResults: 5 }] // Focus on text
+                            }]
+                        })
+                    });
+
+                    if(!response.ok) throw new Error("Errore API Google Vision");
+                    
+                    const data = await response.json();
+                    
+                    // 3. Extract Text
+                    if (data.responses && data.responses[0].fullTextAnnotation) {
+                        const rawText = data.responses[0].fullTextAnnotation.text;
+                        // Clean text: remove newlines, take first 50 chars for search
+                        const cleanText = rawText.replace(/\n/g, " ").trim();
+                        
+                        showLoader(false);
+                        const confirmedText = prompt("Testo rilevato. Conferma o modifica per la ricerca:", cleanText);
+                        
+                        if(confirmedText) {
+                            document.getElementById('search-input').value = confirmedText;
+                            processSearch(confirmedText);
+                        }
+                    } else {
+                        showLoader(false);
+                        alert("Nessun testo rilevato chiaramente sulla copertina.");
+                    }
+
+                } catch (error) {
+                    console.error(error);
+                    showLoader(false);
+                    alert("Errore Vision API: " + error.message);
+                }
+            };
+            reader.readAsDataURL(file);
         }
 
         window.simulateScan = () => {
