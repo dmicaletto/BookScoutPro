@@ -129,6 +129,7 @@
                 <nav class="space-y-4 flex-1">
                     <a href="#" onclick="showSection('home'); toggleMenu()" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition"><i class="fa-solid fa-barcode w-6 text-center"></i> Scansiona</a>
                     <a href="#" onclick="showSection('inventory'); toggleMenu();" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition"><i class="fa-solid fa-boxes-stacked w-6 text-center"></i> Inventario</a>
+                    <a href="#" onclick="showSection('dashboard'); toggleMenu(); updateDashboard();" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition"><i class="fa-solid fa-chart-pie w-6 text-center"></i> Dashboard</a>
                     <a href="#" onclick="showSection('import-export'); toggleMenu();" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition"><i class="fa-solid fa-file-import w-6 text-center"></i> Importa / Esporta</a>
                     <div class="text-xs text-gray-500 mt-4 px-3">
                         Status: <span id="auth-status" class="text-yellow-500">Connessione...</span>
@@ -256,9 +257,14 @@
                                         <div id="diff-amazon"></div>
                                     </div>
                                 </div>
-                                <button onclick="toggleTrend('amazon')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition shrink-0">
-                                    <i class="fa-solid fa-chart-line"></i>
-                                </button>
+                                <div class="flex flex-col gap-1">
+                                    <button onclick="toggleTrend('amazon')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition shrink-0">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                    </button>
+                                    <button onclick="openSaleModal('amazon')" class="w-8 h-8 rounded-full bg-emerald-100 hover:bg-emerald-200 flex items-center justify-center text-emerald-600 transition shrink-0 shadow-sm" title="Vendi su Amazon">
+                                        <i class="fa-solid fa-cash-register"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div id="trend-amazon" class="trend-panel bg-gray-50 px-3 pb-3">
@@ -288,9 +294,14 @@
                                         <div id="diff-ebay"></div>
                                     </div>
                                 </div>
-                                <button onclick="toggleTrend('ebay')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition shrink-0">
-                                    <i class="fa-solid fa-chart-line"></i>
-                                </button>
+                                <div class="flex flex-col gap-1">
+                                    <button onclick="toggleTrend('ebay')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition shrink-0">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                    </button>
+                                    <button onclick="openSaleModal('ebay')" class="w-8 h-8 rounded-full bg-emerald-100 hover:bg-emerald-200 flex items-center justify-center text-emerald-600 transition shrink-0 shadow-sm" title="Vendi su eBay">
+                                        <i class="fa-solid fa-cash-register"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                          <div id="trend-ebay" class="trend-panel bg-gray-50 px-3 pb-3">
@@ -320,9 +331,14 @@
                                         <div id="diff-abebooks"></div>
                                     </div>
                                 </div>
-                                <button onclick="toggleTrend('abebooks')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition shrink-0">
-                                    <i class="fa-solid fa-chart-line"></i>
-                                </button>
+                                <div class="flex flex-col gap-1">
+                                    <button onclick="toggleTrend('abebooks')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition shrink-0">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                    </button>
+                                    <button onclick="openSaleModal('abebooks')" class="w-8 h-8 rounded-full bg-emerald-100 hover:bg-emerald-200 flex items-center justify-center text-emerald-600 transition shrink-0 shadow-sm" title="Vendi su AbeBooks">
+                                        <i class="fa-solid fa-cash-register"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                          <div id="trend-abebooks" class="trend-panel bg-gray-50 px-3 pb-3">
@@ -386,6 +402,47 @@
                     <button onclick="changePage(1)" id="next-page" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-chevron-right"></i>
                     </button>
+                </div>
+             </div>
+
+             <!-- SECTION: DASHBOARD -->
+             <div id="section-dashboard" class="hidden flex-col h-full fade-in p-2 overflow-y-auto">
+                <div class="flex justify-between items-end mb-4 px-2 pt-2">
+                    <h2 class="text-2xl font-bold text-white shadow-black drop-shadow-md">Dashboard</h2>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center">
+                        <span class="text-xs text-gray-500 uppercase font-bold tracking-wider">Fatturato</span>
+                        <span class="text-2xl font-bold text-emerald-600 mt-1" id="kpi-revenue">€ 0.00</span>
+                    </div>
+                    <div class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center">
+                        <span class="text-xs text-gray-500 uppercase font-bold tracking-wider">Vendite</span>
+                        <span class="text-2xl font-bold text-blue-600 mt-1" id="kpi-sales">0</span>
+                    </div>
+                </div>
+
+                <!-- Channel Strategy Chart -->
+                <div class="glass-panel p-4 rounded-2xl mb-6">
+                    <h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-indigo-500"></i> Strategia di Canale
+                    </h3>
+                    <div class="space-y-3" id="channel-chart">
+                        <!-- Bars injected by JS -->
+                        <p class="text-xs text-gray-400 italic text-center">Nessuna vendita registrata.</p>
+                    </div>
+                </div>
+
+                <!-- Oldest Inventory -->
+                <div class="glass-panel p-4 rounded-2xl mb-20">
+                    <h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-hourglass-half text-orange-500"></i> Giacenza Maggiore
+                    </h3>
+                    <div class="space-y-2" id="oldest-inventory-list">
+                        <!-- List injected by JS -->
+                        <p class="text-xs text-gray-400 italic text-center">Inventario vuoto o recente.</p>
+                    </div>
                 </div>
              </div>
 
@@ -491,6 +548,43 @@
             </div>
         </div>
 
+        <!-- Sales Confirmation Modal -->
+        <div id="modal-sale" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm fade-in">
+            <div class="bg-white w-[90%] sm:max-w-sm p-6 rounded-2xl shadow-2xl flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg text-gray-800">Registra Vendita</h3>
+                    <button onclick="document.getElementById('modal-sale').classList.add('hidden')" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+                
+                <div class="bg-emerald-50 border border-emerald-100 p-3 rounded-lg mb-4 flex items-center gap-3">
+                    <div id="sale-channel-icon" class="text-2xl text-emerald-600"></div>
+                    <div>
+                        <p class="text-xs text-emerald-800 font-bold uppercase">Canale</p>
+                        <p class="font-bold text-gray-800 capitalize" id="sale-channel-name">Amazon</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label class="text-xs text-gray-500 font-bold block mb-1">Prezzo Finale di Vendita (€)</label>
+                        <input type="number" step="0.01" id="sale-price" class="w-full text-center text-2xl font-bold p-3 border-2 border-emerald-500 rounded-xl focus:outline-none text-emerald-700 bg-white">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-500 font-bold block mb-1">Copie Vendute (Max: <span id="sale-max-copies">1</span>)</label>
+                        <div class="flex items-center gap-2">
+                            <button onclick="adjustSaleCopies(-1)" class="w-10 h-10 rounded-lg bg-gray-200 hover:bg-gray-300 font-bold">-</button>
+                            <input type="number" id="sale-copies" value="1" min="1" readonly class="flex-1 text-center font-bold p-2 bg-gray-50 rounded-lg">
+                            <button onclick="adjustSaleCopies(1)" class="w-10 h-10 rounded-lg bg-gray-200 hover:bg-gray-300 font-bold">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="confirmSale()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check"></i> Conferma Vendita
+                </button>
+            </div>
+        </div>
+
         <!-- Search Results Selection Modal -->
         <div id="modal-search-results" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm fade-in">
             <div class="bg-white w-[90%] sm:max-w-sm p-4 rounded-2xl shadow-2xl flex flex-col max-h-[80vh]">
@@ -535,7 +629,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // --- GOOGLE API & GEMINI ---
@@ -585,7 +679,7 @@
                 return data.candidates?.[0]?.content?.parts?.[0]?.text || "Errore nella generazione.";
             } catch (error) {
                 console.error("Gemini Error:", error);
-                alert(error.message); // Show specific error to user
+                alert(error.message); 
                 return null;
             }
         }
@@ -681,6 +775,7 @@
 
         let currentUser = null;
         let allInventory = []; 
+        let allSales = []; // Stores sales history
         let currentViewedBook = null; 
         let isEditingMode = false; 
         let currentDocId = null;
@@ -715,18 +810,195 @@
                 
                 document.getElementById('user-id-display').innerText = `ID: ${user.uid.substring(0,6)}...`;
 
-                const q = query(collection(db, 'artifacts', appId, 'users', user.uid, 'inventory'));
-                onSnapshot(q, (snapshot) => {
+                // Listen to Inventory
+                const qInv = query(collection(db, 'artifacts', appId, 'users', user.uid, 'inventory'));
+                onSnapshot(qInv, (snapshot) => {
                     allInventory = snapshot.docs.map(doc => ({
                         firestoreId: doc.id,
                         ...doc.data()
                     }));
                     updateInventoryView(); 
-                }, (error) => {
-                    console.error("Firestore Error:", error);
-                });
+                    if(!document.getElementById('section-dashboard').classList.contains('hidden')) updateDashboard(); // Refresh dashboard if open
+                }, (error) => console.error("Inventory Error:", error));
+
+                // Listen to Sales (New)
+                const qSales = query(collection(db, 'artifacts', appId, 'users', user.uid, 'sales'));
+                onSnapshot(qSales, (snapshot) => {
+                    allSales = snapshot.docs.map(doc => doc.data());
+                    if(!document.getElementById('section-dashboard').classList.contains('hidden')) updateDashboard(); // Refresh dashboard if open
+                }, (error) => console.error("Sales Error:", error));
             }
         });
+
+        // --- SALES LOGIC ---
+        let saleChannel = "";
+        
+        window.openSaleModal = (channel) => {
+            if(!currentViewedBook || !isEditingMode) {
+                alert("Devi prima aggiungere il libro all'inventario per venderlo.");
+                return;
+            }
+            
+            saleChannel = channel;
+            
+            // Setup UI
+            const iconMap = {
+                amazon: '<i class="fa-brands fa-amazon"></i>',
+                ebay: '<i class="fa-brands fa-ebay"></i>',
+                abebooks: '<i class="fa-solid fa-book-open"></i>'
+            };
+            document.getElementById('sale-channel-icon').innerHTML = iconMap[channel];
+            document.getElementById('sale-channel-name').innerText = channel;
+            
+            // Pre-fill price from user setting, fallback to 0
+            const userPrice = currentViewedBook.myPrices?.[channel];
+            document.getElementById('sale-price').value = userPrice || "";
+            
+            // Max copies check
+            const max = currentViewedBook.copies || 1;
+            document.getElementById('sale-max-copies').innerText = max;
+            document.getElementById('sale-copies').max = max;
+            document.getElementById('sale-copies').value = 1;
+            
+            document.getElementById('modal-sale').classList.remove('hidden');
+        };
+
+        window.adjustSaleCopies = (delta) => {
+            const el = document.getElementById('sale-copies');
+            let val = parseInt(el.value) + delta;
+            const max = parseInt(document.getElementById('sale-max-copies').innerText);
+            if(val < 1) val = 1;
+            if(val > max) val = max;
+            el.value = val;
+        };
+
+        window.confirmSale = async () => {
+            if (!currentUser) return;
+            const price = parseFloat(document.getElementById('sale-price').value);
+            const copiesSold = parseInt(document.getElementById('sale-copies').value);
+            
+            if(!price || price < 0) return alert("Inserisci un prezzo valido.");
+            
+            showLoader(true, "Registrazione vendita...");
+            
+            try {
+                // 1. Record Sale
+                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'sales'), {
+                    bookTitle: currentViewedBook.book.title,
+                    isbn: currentViewedBook.book.isbn,
+                    channel: saleChannel,
+                    price: price,
+                    quantity: copiesSold,
+                    dateSold: new Date().toISOString()
+                });
+
+                // 2. Update Inventory
+                const newCopies = (currentViewedBook.copies || 1) - copiesSold;
+                
+                if (newCopies > 0) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory', currentViewedBook.firestoreId), {
+                        copies: newCopies
+                    });
+                    // Update local object immediately for UI responsiveness
+                    currentViewedBook.copies = newCopies;
+                } else {
+                    // Out of stock? Delete or Mark as 0? 
+                    // Let's mark as 0 copies for history or delete? 
+                    // Usually deleting is cleaner for this simple app, or keep with 0. 
+                    // Let's keep with 0 to show "Sold Out" maybe, but user didn't specify.
+                    // Let's delete for simplicity to remove from active inventory view.
+                    await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory', currentViewedBook.firestoreId));
+                    document.getElementById('modal-sale').classList.add('hidden');
+                    showLoader(false);
+                    alert("Vendita registrata! Libro esaurito e rimosso dall'inventario attivo.");
+                    window.showSection('home');
+                    return;
+                }
+
+                document.getElementById('modal-sale').classList.add('hidden');
+                showLoader(false);
+                alert("Vendita registrata!");
+                // Refresh Detail View
+                openDetailView(currentViewedBook, true);
+
+            } catch(e) {
+                console.error(e);
+                showLoader(false);
+                alert("Errore durante la vendita.");
+            }
+        };
+
+        // --- DASHBOARD LOGIC ---
+        
+        window.updateDashboard = () => {
+            // 1. KPIs
+            const totalRevenue = allSales.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+            const totalItemsSold = allSales.reduce((acc, curr) => acc + curr.quantity, 0);
+            
+            document.getElementById('kpi-revenue').innerText = `€ ${totalRevenue.toFixed(2)}`;
+            document.getElementById('kpi-sales').innerText = totalItemsSold;
+
+            // 2. Channel Strategy Chart
+            const channelStats = { amazon: 0, ebay: 0, abebooks: 0 };
+            allSales.forEach(s => {
+                if(channelStats[s.channel] !== undefined) channelStats[s.channel] += (s.price * s.quantity);
+            });
+            
+            const maxVal = Math.max(...Object.values(channelStats), 1); // Avoid div by zero
+            const channels = ['amazon', 'ebay', 'abebooks'];
+            const colors = { amazon: 'bg-yellow-400', ebay: 'bg-blue-500', abebooks: 'bg-red-600' };
+            const names = { amazon: 'Amazon', ebay: 'eBay', abebooks: 'AbeBooks' };
+
+            let chartHtml = "";
+            let hasData = false;
+            
+            channels.forEach(ch => {
+                const val = channelStats[ch];
+                if(val > 0) hasData = true;
+                const pct = (val / maxVal) * 100;
+                chartHtml += `
+                    <div class="mb-2">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="font-bold text-gray-600">${names[ch]}</span>
+                            <span class="text-gray-500">€ ${val.toFixed(2)}</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="${colors[ch]} h-2.5 rounded-full" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('channel-chart').innerHTML = hasData ? chartHtml : '<p class="text-xs text-gray-400 italic text-center">Nessuna vendita registrata.</p>';
+
+            // 3. Oldest Inventory
+            // Sort inventory by dateAdded ascending (oldest first)
+            const sortedInv = [...allInventory].sort((a, b) => {
+                const d1 = new Date(a.dateAdded || Date.now());
+                const d2 = new Date(b.dateAdded || Date.now());
+                return d1 - d2;
+            }).slice(0, 5); // Take top 5
+
+            let listHtml = "";
+            if(sortedInv.length > 0) {
+                sortedInv.forEach(item => {
+                    const days = Math.floor((new Date() - new Date(item.dateAdded)) / (1000 * 60 * 60 * 24));
+                    listHtml += `
+                        <div class="flex justify-between items-center p-2 border-b border-gray-100 last:border-0">
+                            <div class="truncate pr-2">
+                                <p class="text-xs font-bold text-gray-800 truncate">${item.book.title}</p>
+                                <p class="text-[10px] text-gray-500">Scaffale: ${item.location.shelf}-${item.location.position}</p>
+                            </div>
+                            <span class="text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded whitespace-nowrap">${days} gg</span>
+                        </div>
+                    `;
+                });
+            } else {
+                listHtml = '<p class="text-xs text-gray-400 italic text-center">Inventario vuoto.</p>';
+            }
+            document.getElementById('oldest-inventory-list').innerHTML = listHtml;
+        };
+
 
         // --- IMPORT / EXPORT LOGIC ---
 
@@ -1389,6 +1661,7 @@
             document.getElementById('section-results').classList.add('hidden');
             document.getElementById('section-inventory').classList.add('hidden');
             document.getElementById('section-import-export').classList.add('hidden'); // Add this line
+            document.getElementById('section-dashboard').classList.add('hidden'); // Add this line
             
             document.getElementById('section-' + id).classList.remove('hidden');
             if(id === 'inventory') {
