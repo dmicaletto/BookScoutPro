@@ -412,21 +412,25 @@
                 </div>
 
                 <!-- KPI Cards -->
-                <div class="grid grid-cols-2 gap-3 mb-6">
-                    <div class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center">
-                        <span class="text-xs text-gray-500 uppercase font-bold tracking-wider">Fatturato</span>
-                        <span class="text-2xl font-bold text-emerald-600 mt-1" id="kpi-revenue">€ 0.00</span>
+                <div class="grid grid-cols-3 gap-2 mb-6">
+                    <div class="glass-panel p-3 rounded-2xl flex flex-col items-center justify-center">
+                        <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Fatturato</span>
+                        <span class="text-xl font-bold text-emerald-600 mt-1" id="kpi-revenue">€ 0.00</span>
                     </div>
-                    <div class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center">
-                        <span class="text-xs text-gray-500 uppercase font-bold tracking-wider">Vendite</span>
-                        <span class="text-2xl font-bold text-blue-600 mt-1" id="kpi-sales">0</span>
+                    <div class="glass-panel p-3 rounded-2xl flex flex-col items-center justify-center">
+                        <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Profitto</span>
+                        <span class="text-xl font-bold text-indigo-600 mt-1" id="kpi-profit">€ 0.00</span>
+                    </div>
+                    <div class="glass-panel p-3 rounded-2xl flex flex-col items-center justify-center">
+                        <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Vendite</span>
+                        <span class="text-xl font-bold text-blue-600 mt-1" id="kpi-sales">0</span>
                     </div>
                 </div>
 
                 <!-- Channel Strategy Chart -->
                 <div class="glass-panel p-4 rounded-2xl mb-6">
                     <h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-chart-pie text-indigo-500"></i> Strategia di Canale
+                        <i class="fa-solid fa-chart-pie text-indigo-500"></i> Profitto per Canale
                     </h3>
                     <div class="space-y-3" id="channel-chart">
                         <!-- Bars injected by JS -->
@@ -482,7 +486,7 @@
             <p class="animate-pulse" id="loading-text">Elaborazione...</p>
         </div>
 
-        <!-- Add/Edit Modal (With Gemini) -->
+        <!-- Add/Edit Modal (With Gemini & Purchase Cost) -->
         <div id="modal-inventory" class="hidden absolute inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm fade-in">
             <div class="bg-white w-[90%] sm:max-w-sm p-6 rounded-2xl shadow-2xl animate-slide-up flex flex-col max-h-[90vh]">
                 <div class="flex justify-between items-center mb-4 shrink-0">
@@ -507,7 +511,6 @@
                         </select>
                         <input type="text" id="inv-condition-custom" class="w-full mt-2 p-2 border border-gray-200 rounded-lg text-sm hidden focus:border-emerald-500 outline-none" placeholder="Es. Copertina strappata, dedica...">
                         
-                        <!-- GEMINI DESCRIPTION GENERATOR -->
                         <div class="mt-3">
                             <label class="text-[10px] text-gray-400 mb-1 flex justify-between items-center">
                                 <span>Note di Vendita</span>
@@ -536,9 +539,19 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Purchase Cost Input -->
+                    <div class="mb-4">
+                         <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Dati Acquisto</h4>
+                         <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-gray-500 text-sm">€</span>
+                            <input type="number" step="0.01" id="inv-purchase-price" class="w-full pl-7 pr-3 py-2 border border-gray-200 rounded-lg text-sm font-bold focus:border-emerald-500 outline-none" placeholder="0.00">
+                            <label class="text-[10px] text-gray-400 block mt-1">Costo Acquisto (per copia)</label>
+                         </div>
+                    </div>
                     
                     <p class="text-[10px] text-gray-400 italic text-center mb-2">
-                        * I prezzi sono stati salvati dalla schermata precedente.
+                        * I prezzi di vendita sono stati salvati dalla schermata precedente.
                     </p>
                 </div>
 
@@ -548,7 +561,7 @@
             </div>
         </div>
 
-        <!-- Sales Confirmation Modal -->
+        <!-- Sales Confirmation Modal (With Shipping) -->
         <div id="modal-sale" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm fade-in">
             <div class="bg-white w-[90%] sm:max-w-sm p-6 rounded-2xl shadow-2xl flex flex-col">
                 <div class="flex justify-between items-center mb-4">
@@ -569,6 +582,13 @@
                         <label class="text-xs text-gray-500 font-bold block mb-1">Prezzo Finale di Vendita (€)</label>
                         <input type="number" step="0.01" id="sale-price" class="w-full text-center text-2xl font-bold p-3 border-2 border-emerald-500 rounded-xl focus:outline-none text-emerald-700 bg-white">
                     </div>
+                    
+                    <!-- Shipping Cost Input -->
+                    <div>
+                        <label class="text-xs text-gray-500 font-bold block mb-1">Spese Spedizione / Commissioni (€)</label>
+                        <input type="number" step="0.01" id="sale-shipping" class="w-full text-center text-lg font-bold p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500 bg-gray-50" placeholder="0.00">
+                    </div>
+
                     <div>
                         <label class="text-xs text-gray-500 font-bold block mb-1">Copie Vendute (Max: <span id="sale-max-copies">1</span>)</label>
                         <div class="flex items-center gap-2">
@@ -606,7 +626,7 @@
                     <button onclick="document.getElementById('modal-csv-info').classList.add('hidden')" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
                 </div>
                 <div class="overflow-y-auto hide-scroll flex-1 text-sm text-gray-600">
-                    <p class="mb-2">Per importare correttamente i dati, il file CSV deve avere le seguenti colonne (l'ordine non è importante, ma i nomi sì):</p>
+                    <p class="mb-2">Per importare correttamente i dati, il file CSV deve avere le seguenti colonne:</p>
                     <ul class="list-disc pl-5 space-y-1 mb-4 text-xs font-mono bg-gray-100 p-2 rounded">
                         <li>isbn</li>
                         <li>title</li>
@@ -618,9 +638,9 @@
                         <li>price_amazon</li>
                         <li>price_ebay</li>
                         <li>price_abebooks</li>
+                        <li>purchase_price</li> <!-- Added -->
                         <li>notes</li>
                     </ul>
-                    <p class="text-xs text-gray-500 italic">I campi mancanti verranno lasciati vuoti o impostati al valore di default.</p>
                 </div>
             </div>
         </div>
@@ -755,7 +775,6 @@
             btn.innerHTML = originalText;
         };
 
-
         // --- FIREBASE SETUP ---
         // Your web app's Firebase configuration
         // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -853,6 +872,7 @@
             // Pre-fill price from user setting, fallback to 0
             const userPrice = currentViewedBook.myPrices?.[channel];
             document.getElementById('sale-price').value = userPrice || "";
+            document.getElementById('sale-shipping').value = ""; // Reset shipping
             
             // Max copies check
             const max = currentViewedBook.copies || 1;
@@ -875,19 +895,24 @@
         window.confirmSale = async () => {
             if (!currentUser) return;
             const price = parseFloat(document.getElementById('sale-price').value);
+            const shipping = parseFloat(document.getElementById('sale-shipping').value) || 0;
             const copiesSold = parseInt(document.getElementById('sale-copies').value);
+            // Get purchase price from inventory item
+            const purchasePrice = parseFloat(currentViewedBook.purchasePrice) || 0;
             
             if(!price || price < 0) return alert("Inserisci un prezzo valido.");
             
             showLoader(true, "Registrazione vendita...");
             
             try {
-                // 1. Record Sale
+                // 1. Record Sale (Snapshotting all costs)
                 await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'sales'), {
                     bookTitle: currentViewedBook.book.title,
                     isbn: currentViewedBook.book.isbn,
                     channel: saleChannel,
                     price: price,
+                    shippingCost: shipping,
+                    purchasePrice: purchasePrice, // Snapshot cost at time of sale
                     quantity: copiesSold,
                     dateSold: new Date().toISOString()
                 });
@@ -899,14 +924,8 @@
                     await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory', currentViewedBook.firestoreId), {
                         copies: newCopies
                     });
-                    // Update local object immediately for UI responsiveness
                     currentViewedBook.copies = newCopies;
                 } else {
-                    // Out of stock? Delete or Mark as 0? 
-                    // Let's mark as 0 copies for history or delete? 
-                    // Usually deleting is cleaner for this simple app, or keep with 0. 
-                    // Let's keep with 0 to show "Sold Out" maybe, but user didn't specify.
-                    // Let's delete for simplicity to remove from active inventory view.
                     await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory', currentViewedBook.firestoreId));
                     document.getElementById('modal-sale').classList.add('hidden');
                     showLoader(false);
@@ -918,7 +937,6 @@
                 document.getElementById('modal-sale').classList.add('hidden');
                 showLoader(false);
                 alert("Vendita registrata!");
-                // Refresh Detail View
                 openDetailView(currentViewedBook, true);
 
             } catch(e) {
@@ -932,19 +950,33 @@
         
         window.updateDashboard = () => {
             // 1. KPIs
-            const totalRevenue = allSales.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
-            const totalItemsSold = allSales.reduce((acc, curr) => acc + curr.quantity, 0);
-            
-            document.getElementById('kpi-revenue').innerText = `€ ${totalRevenue.toFixed(2)}`;
-            document.getElementById('kpi-sales').innerText = totalItemsSold;
+            let totalRevenue = 0;
+            let totalProfit = 0;
+            let totalItemsSold = 0;
 
-            // 2. Channel Strategy Chart
-            const channelStats = { amazon: 0, ebay: 0, abebooks: 0 };
+            const channelStats = { amazon: 0, ebay: 0, abebooks: 0 }; // Tracks PROFIT per channel
+
             allSales.forEach(s => {
-                if(channelStats[s.channel] !== undefined) channelStats[s.channel] += (s.price * s.quantity);
+                const qty = s.quantity || 1;
+                const revenue = s.price * qty;
+                const cost = (s.purchasePrice || 0) * qty;
+                const shipping = (s.shippingCost || 0); // Shipping is usually per transaction/package, but here simplified
+
+                const profit = revenue - shipping - cost;
+
+                totalRevenue += revenue;
+                totalProfit += profit;
+                totalItemsSold += qty;
+
+                if(channelStats[s.channel] !== undefined) channelStats[s.channel] += profit;
             });
             
-            const maxVal = Math.max(...Object.values(channelStats), 1); // Avoid div by zero
+            document.getElementById('kpi-revenue').innerText = `€ ${totalRevenue.toFixed(2)}`;
+            document.getElementById('kpi-profit').innerText = `€ ${totalProfit.toFixed(2)}`;
+            document.getElementById('kpi-sales').innerText = totalItemsSold;
+
+            // 2. Channel Strategy Chart (Now shows Profit)
+            const maxVal = Math.max(...Object.values(channelStats), 1); 
             const channels = ['amazon', 'ebay', 'abebooks'];
             const colors = { amazon: 'bg-yellow-400', ebay: 'bg-blue-500', abebooks: 'bg-red-600' };
             const names = { amazon: 'Amazon', ebay: 'eBay', abebooks: 'AbeBooks' };
@@ -954,13 +986,13 @@
             
             channels.forEach(ch => {
                 const val = channelStats[ch];
-                if(val > 0) hasData = true;
-                const pct = (val / maxVal) * 100;
+                if(val !== 0) hasData = true; // Allow negative profit to show?
+                const pct = Math.max((val / maxVal) * 100, 0); // Simple positive bar for now
                 chartHtml += `
                     <div class="mb-2">
                         <div class="flex justify-between text-xs mb-1">
                             <span class="font-bold text-gray-600">${names[ch]}</span>
-                            <span class="text-gray-500">€ ${val.toFixed(2)}</span>
+                            <span class="${val >= 0 ? 'text-emerald-600' : 'text-red-500'} font-bold">€ ${val.toFixed(2)}</span>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-2.5">
                             <div class="${colors[ch]} h-2.5 rounded-full" style="width: ${pct}%"></div>
@@ -972,12 +1004,11 @@
             document.getElementById('channel-chart').innerHTML = hasData ? chartHtml : '<p class="text-xs text-gray-400 italic text-center">Nessuna vendita registrata.</p>';
 
             // 3. Oldest Inventory
-            // Sort inventory by dateAdded ascending (oldest first)
             const sortedInv = [...allInventory].sort((a, b) => {
                 const d1 = new Date(a.dateAdded || Date.now());
                 const d2 = new Date(b.dateAdded || Date.now());
                 return d1 - d2;
-            }).slice(0, 5); // Take top 5
+            }).slice(0, 5);
 
             let listHtml = "";
             if(sortedInv.length > 0) {
@@ -1014,7 +1045,7 @@
 
             // Headers
             let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "isbn,title,author,shelf,position,copies,condition,price_amazon,price_ebay,price_abebooks,notes,date_added\n";
+            csvContent += "isbn,title,author,shelf,position,copies,condition,price_amazon,price_ebay,price_abebooks,purchase_price,notes,date_added\n";
 
             // Rows
             allInventory.forEach(item => {
@@ -1029,6 +1060,7 @@
                     `"${item.myPrices?.amazon || ''}"`,
                     `"${item.myPrices?.ebay || ''}"`,
                     `"${item.myPrices?.abebooks || ''}"`,
+                    `"${item.purchasePrice || ''}"`, // Export Purchase Price
                     `"${(item.notes || '').replace(/"/g, '""')}"`,
                     `"${item.dateAdded || ''}"`
                 ].join(",");
@@ -1053,30 +1085,23 @@
             reader.onload = async function(e) {
                 const text = e.target.result;
                 const rows = text.split('\n');
-                if (rows.length < 2) return; // Empty or just header
+                if (rows.length < 2) return; 
 
                 const headers = rows[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
                 const inventoryCollection = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory');
                 
                 showLoader(true, "Importazione in corso...");
                 let successCount = 0;
-
-                // Simple parser - assumes no commas in unquoted fields or handles basic quotes logic simplistically
-                // For a robust app, a proper CSV parser library is recommended. Here we do a basic split.
                 
                 for (let i = 1; i < rows.length; i++) {
-                    // Regex to split by comma but ignore commas inside quotes
                     const cols = rows[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g); 
-                    // Fallback simple split if regex fails or simple structure
                     const simpleCols = rows[i].split(',');
 
-                    if (!simpleCols || simpleCols.length < 3) continue; // Skip empty rows
+                    if (!simpleCols || simpleCols.length < 3) continue; 
 
-                    // Mapping helper
                     const getVal = (headerName) => {
                         const idx = headers.indexOf(headerName);
                         if (idx === -1) return "";
-                        // Use simple split for now, remove quotes
                         let val = simpleCols[idx] || "";
                         return val.replace(/^"|"$/g, '').replace(/""/g, '"').trim();
                     };
@@ -1086,7 +1111,7 @@
                             isbn: getVal('isbn') || "NO-ISBN",
                             title: getVal('title') || "Titolo Importato",
                             author: getVal('author') || "Autore Importato",
-                            cover: "https://via.placeholder.com/150x200?text=No+Cover", // No cover in CSV usually
+                            cover: "https://via.placeholder.com/150x200?text=No+Cover", 
                             prices: { amazon: "Vedi", ebay: "Vedi", abebooks: "Vedi" },
                             strategy: "Importato da CSV"
                         },
@@ -1101,6 +1126,7 @@
                             ebay: getVal('price_ebay'),
                             abebooks: getVal('price_abebooks')
                         },
+                        purchasePrice: parseFloat(getVal('purchase_price')) || 0, // Import purchase price
                         notes: getVal('notes'),
                         dateAdded: new Date().toISOString()
                     };
@@ -1115,7 +1141,7 @@
 
                 showLoader(false);
                 alert(`Importazione completata: ${successCount} libri aggiunti.`);
-                input.value = ''; // Reset input
+                input.value = ''; 
                 window.showSection('inventory');
             };
             reader.readAsText(file);
@@ -1548,6 +1574,7 @@
                 document.getElementById('inv-shelf').value = item.location.shelf;
                 document.getElementById('inv-pos').value = item.location.position;
                 document.getElementById('inv-copies').value = item.copies || 1;
+                document.getElementById('inv-purchase-price').value = item.purchasePrice || ""; // Load Purchase Price
                 document.getElementById('inv-notes').value = item.notes || ""; // Load notes
                 
                 const savedCond = item.condition || "Buono";
@@ -1570,6 +1597,7 @@
                 document.getElementById('inv-shelf').value = "";
                 document.getElementById('inv-pos').value = "";
                 document.getElementById('inv-copies').value = 1;
+                document.getElementById('inv-purchase-price').value = ""; // Clear
                 document.getElementById('inv-condition').value = "Buono";
                 document.getElementById('inv-notes').value = ""; // Clear notes
                 document.getElementById('inv-condition-custom').value = "";
@@ -1585,6 +1613,7 @@
             let pos = document.getElementById('inv-pos').value;
             let copies = parseInt(document.getElementById('inv-copies').value);
             const notes = document.getElementById('inv-notes').value;
+            const purchasePrice = parseFloat(document.getElementById('inv-purchase-price').value) || 0; // Get Purchase Price
             
             let condition = document.getElementById('inv-condition').value;
             if (condition === 'Altro') {
@@ -1614,6 +1643,7 @@
                         copies: copies,
                         condition: condition,
                         myPrices: myPrices,
+                        purchasePrice: purchasePrice, // Save
                         notes: notes
                     });
                     alert("Aggiornato!");
@@ -1624,6 +1654,7 @@
                         copies: copies,
                         condition: condition,
                         myPrices: myPrices,
+                        purchasePrice: purchasePrice, // Save
                         notes: notes,
                         dateAdded: new Date().toISOString()
                     });
