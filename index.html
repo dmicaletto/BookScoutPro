@@ -99,7 +99,7 @@
 
     <div class="absolute inset-0 bg-black/40 z-0"></div>
 
-    <!-- App Container: w-full for mobile, md:max-w-md for desktop to simulate app feel -->
+    <!-- App Container -->
     <div class="app-container relative z-10 w-full h-full flex flex-col md:max-w-md mx-auto bg-white/10 shadow-2xl overflow-hidden md:border-x md:border-white/20 transition-all duration-300">
         
         <!-- Header -->
@@ -128,7 +128,7 @@
                 </div>
                 <nav class="space-y-4 flex-1">
                     <a href="#" onclick="showSection('home'); toggleMenu()" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition"><i class="fa-solid fa-barcode w-6 text-center"></i> Scansiona</a>
-                    <a href="#" onclick="showSection('inventory'); toggleMenu();" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition"><i class="fa-solid fa-boxes-stacked w-6 text-center"></i> Inventario</a>
+                    <a href="#" onclick="showSection('inventory'); toggleMenu();" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition"><i class="fa-solid fa-boxes-stacked w-6 text-center"></i> Inventario Condiviso</a>
                     <a href="#" onclick="showSection('dashboard'); toggleMenu(); updateDashboard();" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition"><i class="fa-solid fa-chart-pie w-6 text-center"></i> Dashboard</a>
                     <a href="#" onclick="showSection('import-export'); toggleMenu();" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition"><i class="fa-solid fa-file-import w-6 text-center"></i> Importa / Esporta</a>
                     <div class="text-xs text-gray-500 mt-4 px-3">
@@ -626,7 +626,7 @@
                     <button onclick="document.getElementById('modal-csv-info').classList.add('hidden')" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
                 </div>
                 <div class="overflow-y-auto hide-scroll flex-1 text-sm text-gray-600">
-                    <p class="mb-2">Per importare correttamente i dati, il file CSV deve avere le seguenti colonne:</p>
+                    <p class="mb-2">Per importare correttamente i dati, il file CSV deve avere le seguenti colonne (l'ordine non è importante, ma i nomi sì):</p>
                     <ul class="list-disc pl-5 space-y-1 mb-4 text-xs font-mono bg-gray-100 p-2 rounded">
                         <li>isbn</li>
                         <li>title</li>
@@ -641,6 +641,7 @@
                         <li>purchase_price</li> <!-- Added -->
                         <li>notes</li>
                     </ul>
+                    <p class="text-xs text-gray-500 italic">I campi mancanti verranno lasciati vuoti o impostati al valore di default.</p>
                 </div>
             </div>
         </div>
@@ -775,6 +776,7 @@
             btn.innerHTML = originalText;
         };
 
+
         // --- FIREBASE SETUP ---
         // Your web app's Firebase configuration
         // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -805,11 +807,14 @@
 
         const initAuth = async () => {
             try {
+                // Ensure auth persistence is LOCAL (survives browser close)
                 await setPersistence(auth, browserLocalPersistence);
 
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
+                    // Only sign in anonymously if no user is present (though onAuthStateChanged handles state restoration)
+                    // We call it to ensure a user is created if none exists
                     await signInAnonymously(auth);
                 }
             } catch (error) {
@@ -824,13 +829,19 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                document.getElementById('auth-status').innerText = "Online";
-                document.getElementById('auth-status').className = "text-emerald-500";
+                const statusEl = document.getElementById('auth-status');
+                if (statusEl) {
+                    statusEl.innerText = "Online";
+                    statusEl.className = "text-emerald-500";
+                }
                 
-                document.getElementById('user-id-display').innerText = `ID: ${user.uid.substring(0,6)}...`;
+                const userIdEl = document.getElementById('user-id-display');
+                if (userIdEl) {
+                    userIdEl.innerText = `ID: ${user.uid.substring(0,6)}...`;
+                }
 
                 // Listen to Inventory
-                const qInv = query(collection(db, 'artifacts', appId, 'users', user.uid, 'inventory'));
+                const qInv = query(collection(db, 'artifacts', appId, 'public', 'data', 'inventory'));
                 onSnapshot(qInv, (snapshot) => {
                     allInventory = snapshot.docs.map(doc => ({
                         firestoreId: doc.id,
@@ -841,7 +852,7 @@
                 }, (error) => console.error("Inventory Error:", error));
 
                 // Listen to Sales (New)
-                const qSales = query(collection(db, 'artifacts', appId, 'users', user.uid, 'sales'));
+                const qSales = query(collection(db, 'artifacts', appId, 'public', 'data', 'sales'));
                 onSnapshot(qSales, (snapshot) => {
                     allSales = snapshot.docs.map(doc => doc.data());
                     if(!document.getElementById('section-dashboard').classList.contains('hidden')) updateDashboard(); // Refresh dashboard if open
@@ -906,7 +917,7 @@
             
             try {
                 // 1. Record Sale (Snapshotting all costs)
-                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'sales'), {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'sales'), {
                     bookTitle: currentViewedBook.book.title,
                     isbn: currentViewedBook.book.isbn,
                     channel: saleChannel,
@@ -921,12 +932,12 @@
                 const newCopies = (currentViewedBook.copies || 1) - copiesSold;
                 
                 if (newCopies > 0) {
-                    await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory', currentViewedBook.firestoreId), {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory', currentViewedBook.firestoreId), {
                         copies: newCopies
                     });
                     currentViewedBook.copies = newCopies;
                 } else {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory', currentViewedBook.firestoreId));
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory', currentViewedBook.firestoreId));
                     document.getElementById('modal-sale').classList.add('hidden');
                     showLoader(false);
                     alert("Vendita registrata! Libro esaurito e rimosso dall'inventario attivo.");
@@ -1088,7 +1099,7 @@
                 if (rows.length < 2) return; 
 
                 const headers = rows[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
-                const inventoryCollection = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory');
+                const inventoryCollection = collection(db, 'artifacts', appId, 'public', 'data', 'inventory');
                 
                 showLoader(true, "Importazione in corso...");
                 let successCount = 0;
@@ -1574,7 +1585,6 @@
                 document.getElementById('inv-shelf').value = item.location.shelf;
                 document.getElementById('inv-pos').value = item.location.position;
                 document.getElementById('inv-copies').value = item.copies || 1;
-                document.getElementById('inv-purchase-price').value = item.purchasePrice || ""; // Load Purchase Price
                 document.getElementById('inv-notes').value = item.notes || ""; // Load notes
                 
                 const savedCond = item.condition || "Buono";
@@ -1597,7 +1607,6 @@
                 document.getElementById('inv-shelf').value = "";
                 document.getElementById('inv-pos').value = "";
                 document.getElementById('inv-copies').value = 1;
-                document.getElementById('inv-purchase-price').value = ""; // Clear
                 document.getElementById('inv-condition').value = "Buono";
                 document.getElementById('inv-notes').value = ""; // Clear notes
                 document.getElementById('inv-condition-custom').value = "";
@@ -1613,7 +1622,6 @@
             let pos = document.getElementById('inv-pos').value;
             let copies = parseInt(document.getElementById('inv-copies').value);
             const notes = document.getElementById('inv-notes').value;
-            const purchasePrice = parseFloat(document.getElementById('inv-purchase-price').value) || 0; // Get Purchase Price
             
             let condition = document.getElementById('inv-condition').value;
             if (condition === 'Altro') {
@@ -1632,7 +1640,7 @@
                 abebooks: document.getElementById('input-price-abebooks').value
             };
 
-            const inventoryCollection = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory');
+            const inventoryCollection = collection(db, 'artifacts', appId, 'public', 'data', 'inventory');
 
             showLoader(true, "Salvataggio...");
             
@@ -1643,7 +1651,6 @@
                         copies: copies,
                         condition: condition,
                         myPrices: myPrices,
-                        purchasePrice: purchasePrice, // Save
                         notes: notes
                     });
                     alert("Aggiornato!");
@@ -1654,7 +1661,6 @@
                         copies: copies,
                         condition: condition,
                         myPrices: myPrices,
-                        purchasePrice: purchasePrice, // Save
                         notes: notes,
                         dateAdded: new Date().toISOString()
                     });
@@ -1680,7 +1686,7 @@
             e.stopPropagation();
             if(!confirm("Eliminare definitivamente?")) return;
             try {
-                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory', id));
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory', id));
             } catch(err) {
                 alert("Errore eliminazione");
             }
