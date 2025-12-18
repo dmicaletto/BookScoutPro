@@ -214,7 +214,14 @@
                         IN STOCK
                     </div>
 
-                    <img id="book-cover" src="" alt="Book Cover" class="w-24 h-36 object-cover rounded shadow-sm bg-gray-200">
+                    <div class="relative">
+                        <img id="book-cover" src="" alt="Book Cover" class="w-24 h-36 object-cover rounded shadow-sm bg-gray-200">
+                        <!-- Icona Galleria nel dettaglio -->
+                        <button id="gallery-btn" onclick="openGallery()" class="hidden absolute bottom-1 right-1 bg-black/60 text-white w-6 h-6 rounded-full flex items-center justify-center hover:bg-black/80 transition">
+                            <i class="fa-solid fa-images text-[10px]"></i>
+                        </button>
+                    </div>
+
                     <div class="flex-1">
                         <div class="flex justify-between items-start mb-1">
                             <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-0.5 rounded-full inline-block">ID: <span id="res-isbn"></span></span>
@@ -376,7 +383,7 @@
             </div>
 
              <!-- SECTION: INVENTORY LIST -->
-             <div id="section-inventory" class="hidden flex-col h-full fade-in">
+            <div id="section-inventory" class="hidden flex-col h-full fade-in">
                 <div class="flex justify-between items-end mb-4 px-2 pt-2">
                     <h2 class="text-2xl font-bold text-white shadow-black drop-shadow-md">Magazzino</h2>
                     <span class="text-xs text-white bg-emerald-600 px-2 py-1 rounded-full" id="inventory-count">0</span>
@@ -390,7 +397,7 @@
                     </div>
                 </div>
 
-                <div id="inventory-list" class="flex-1 space-y-3 pb-2 overflow-y-auto">
+                <div id="inventory-list" class="flex-1 space-y-3 pb-2 overflow-y-auto hide-scroll">
                    <!-- Populated by Firestore -->
                    <div class="text-center text-white mt-10">
                        <i class="fa-solid fa-circle-notch fa-spin"></i> Caricamento...
@@ -410,7 +417,7 @@
              </div>
 
              <!-- SECTION: DASHBOARD -->
-             <div id="section-dashboard" class="hidden flex-col h-full fade-in p-2 overflow-y-auto">
+            <div id="section-dashboard" class="hidden flex-col h-full fade-in p-2 overflow-y-auto hide-scroll">
                 <div class="flex justify-between items-end mb-4 px-2 pt-2">
                     <h2 class="text-2xl font-bold text-white shadow-black drop-shadow-md">Dashboard</h2>
                 </div>
@@ -490,7 +497,7 @@
             <p class="animate-pulse" id="loading-text">Elaborazione...</p>
         </div>
 
-        <!-- Add/Edit Modal (With Gemini & Purchase Cost) -->
+        <!-- Add/Edit Modal (With Gemini & Purchase Cost & Photos) -->
         <div id="modal-inventory" class="hidden absolute inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm fade-in">
             <div class="bg-white w-[90%] sm:max-w-sm p-6 rounded-2xl shadow-2xl animate-slide-up flex flex-col max-h-[90vh]">
                 <div class="flex justify-between items-center mb-4 shrink-0">
@@ -515,7 +522,24 @@
                         </select>
                         <input type="text" id="inv-condition-custom" class="w-full mt-2 p-2 border border-gray-200 rounded-lg text-sm hidden focus:border-emerald-500 outline-none" placeholder="Es. Copertina strappata, dedica...">
                         
-                        <div class="mt-3">
+                        <!-- Photo Upload Section -->
+                        <div class="mt-4">
+                            <label class="text-[10px] text-gray-400 block mb-1 flex justify-between">
+                                <span>Foto Condizioni (Max 3)</span>
+                                <span class="text-xs" id="photo-count">0/3</span>
+                            </label>
+                            <div class="flex gap-2 items-center">
+                                <input type="file" id="inv-photo-input" accept="image/*" capture="environment" class="hidden" onchange="handlePhotoUpload(event)">
+                                <button onclick="document.getElementById('inv-photo-input').click()" id="add-photo-btn" class="w-16 h-16 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-emerald-500 hover:text-emerald-500 transition">
+                                    <i class="fa-solid fa-camera text-xl"></i>
+                                </button>
+                                <!-- Thumbnails Container -->
+                                <div id="photo-thumbnails" class="flex gap-2 overflow-x-auto hide-scroll"></div>
+                            </div>
+                            <p class="text-[9px] text-gray-400 mt-1 italic">* Le foto verranno compresse automaticamente.</p>
+                        </div>
+
+                        <div class="mt-4">
                             <label class="text-[10px] text-gray-400 mb-1 flex justify-between items-center">
                                 <span>Note di Vendita</span>
                                 <button onclick="generateDescriptionWithGemini()" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
@@ -642,10 +666,27 @@
                         <li>price_amazon</li>
                         <li>price_ebay</li>
                         <li>price_abebooks</li>
-                        <li>purchase_price</li> <!-- Added -->
+                        <li>purchase_price</li>
                         <li>notes</li>
                     </ul>
                 </div>
+            </div>
+        </div>
+
+        <!-- Photo Gallery Modal -->
+        <div id="modal-gallery" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md fade-in">
+            <div class="relative w-full h-full flex flex-col">
+                <div class="flex justify-between items-center p-4 absolute top-0 w-full z-10 bg-gradient-to-b from-black/50 to-transparent">
+                    <h3 class="font-bold text-white">Foto Libro</h3>
+                    <button onclick="document.getElementById('modal-gallery').classList.add('hidden')" class="text-white hover:text-gray-300">
+                        <i class="fa-solid fa-xmark text-2xl"></i>
+                    </button>
+                </div>
+                
+                <div id="gallery-container" class="flex-1 flex items-center overflow-x-auto snap-x snap-mandatory gap-4 p-4 hide-scroll">
+                    <!-- Photos injected here -->
+                </div>
+                <div class="p-4 text-center text-gray-400 text-xs">Scorri orizzontalmente</div>
             </div>
         </div>
 
@@ -779,7 +820,7 @@
             btn.innerHTML = originalText;
         };
 
-        // --- FIREBASE CONFIGURATION (ADAPTED) ---
+		// --- FIREBASE SETUP ---
         // Your web app's Firebase configuration
         // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         const firebaseConfig = {
@@ -805,6 +846,7 @@
         let isEditingMode = false; 
         let currentDocId = null;
         let currentSearchResults = []; 
+        let currentPhotos = []; // Store base64 photos for current edit session
         
         let currentPage = 1;
         const ITEMS_PER_PAGE = 10;
@@ -1504,7 +1546,8 @@
                 conditionBadge: document.getElementById('res-condition-badge'),
                 btn: document.getElementById('main-action-btn'),
                 badge: document.getElementById('mode-badge'),
-                strategy: document.getElementById('res-strategy')
+                strategy: document.getElementById('res-strategy'),
+                galleryBtn: document.getElementById('gallery-btn')
             };
 
             els.isbn.innerText = item.book.isbn;
@@ -1527,6 +1570,13 @@
             window.calculateDiff('amazon');
             window.calculateDiff('ebay');
             window.calculateDiff('abebooks');
+
+            // Handle Gallery Button visibility
+            if(item.photos && item.photos.length > 0) {
+                els.galleryBtn.classList.remove('hidden');
+            } else {
+                els.galleryBtn.classList.add('hidden');
+            }
 
             if (isInventoryItem) {
                 els.ribbon.classList.remove('hidden');
@@ -1574,14 +1624,22 @@
             const item = currentViewedBook;
             document.getElementById('modal-book-title').innerText = item.book.title;
 
+            // Load existing photos if in editing mode
+            if (isEditingMode && item.photos) {
+                currentPhotos = [...item.photos];
+            } else {
+                currentPhotos = [];
+            }
+            updatePhotoUI();
+
             if (isEditingMode) {
                 document.getElementById('modal-title').innerText = "Modifica Logistica";
                 document.getElementById('modal-save-btn').innerText = "Salva Tutto";
                 document.getElementById('inv-shelf').value = item.location.shelf;
                 document.getElementById('inv-pos').value = item.location.position;
                 document.getElementById('inv-copies').value = item.copies || 1;
-                document.getElementById('inv-purchase-price').value = item.purchasePrice || ""; // Load Purchase Price
-                document.getElementById('inv-notes').value = item.notes || ""; // Load notes
+                document.getElementById('inv-purchase-price').value = item.purchasePrice || ""; 
+                document.getElementById('inv-notes').value = item.notes || ""; 
                 
                 const savedCond = item.condition || "Buono";
                 const select = document.getElementById('inv-condition');
@@ -1603,9 +1661,9 @@
                 document.getElementById('inv-shelf').value = "";
                 document.getElementById('inv-pos').value = "";
                 document.getElementById('inv-copies').value = 1;
-                document.getElementById('inv-purchase-price').value = ""; // Clear
+                document.getElementById('inv-purchase-price').value = ""; 
                 document.getElementById('inv-condition').value = "Buono";
-                document.getElementById('inv-notes').value = ""; // Clear notes
+                document.getElementById('inv-notes').value = ""; 
                 document.getElementById('inv-condition-custom').value = "";
                 document.getElementById('inv-condition-custom').classList.add('hidden');
             }
@@ -1619,7 +1677,7 @@
             let pos = document.getElementById('inv-pos').value;
             let copies = parseInt(document.getElementById('inv-copies').value);
             const notes = document.getElementById('inv-notes').value;
-            const purchasePrice = parseFloat(document.getElementById('inv-purchase-price').value) || 0; // Get Purchase Price
+            const purchasePrice = parseFloat(document.getElementById('inv-purchase-price').value) || 0; 
             
             let condition = document.getElementById('inv-condition').value;
             if (condition === 'Altro') {
@@ -1649,8 +1707,9 @@
                         copies: copies,
                         condition: condition,
                         myPrices: myPrices,
-                        purchasePrice: purchasePrice, // Save
-                        notes: notes
+                        purchasePrice: purchasePrice, 
+                        notes: notes,
+                        photos: currentPhotos // Save photos array
                     });
                     alert("Aggiornato!");
                 } else {
@@ -1660,8 +1719,9 @@
                         copies: copies,
                         condition: condition,
                         myPrices: myPrices,
-                        purchasePrice: purchasePrice, // Save
+                        purchasePrice: purchasePrice, 
                         notes: notes,
+                        photos: currentPhotos, // Save photos array
                         dateAdded: new Date().toISOString()
                     });
                     alert("Salvato in Cloud!");
@@ -1690,6 +1750,77 @@
             } catch(err) {
                 alert("Errore eliminazione");
             }
+        };
+
+        // --- PHOTO HANDLING ---
+
+        window.handlePhotoUpload = (event) => {
+            if (currentPhotos.length >= 3) {
+                alert("Massimo 3 foto consentite.");
+                return;
+            }
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showLoader(true, "Compressione immagine...");
+            
+            // Compress Image
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800; // Limit size drastically for Firestore
+                    const scaleSize = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scaleSize;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    // Compress to low quality JPEG to save space
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6); 
+                    
+                    currentPhotos.push(dataUrl);
+                    updatePhotoUI();
+                    showLoader(false);
+                }
+            }
+        };
+
+        window.removePhoto = (index) => {
+            currentPhotos.splice(index, 1);
+            updatePhotoUI();
+        };
+
+        window.updatePhotoUI = () => {
+            const container = document.getElementById('photo-thumbnails');
+            const countEl = document.getElementById('photo-count');
+            const addBtn = document.getElementById('add-photo-btn');
+            
+            countEl.innerText = `${currentPhotos.length}/3`;
+            addBtn.disabled = currentPhotos.length >= 3;
+            addBtn.style.opacity = currentPhotos.length >= 3 ? 0.5 : 1;
+
+            container.innerHTML = currentPhotos.map((photo, i) => `
+                <div class="relative w-16 h-16 shrink-0 group">
+                    <img src="${photo}" class="w-full h-full object-cover rounded-lg border border-gray-300">
+                    <button onclick="removePhoto(${i})" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-md">
+                        <i class="fa-solid fa-xmark text-[10px]"></i>
+                    </button>
+                </div>
+            `).join('');
+        };
+
+        window.openGallery = () => {
+            if(!currentViewedBook || !currentViewedBook.photos || currentViewedBook.photos.length === 0) return;
+            const container = document.getElementById('gallery-container');
+            container.innerHTML = currentViewedBook.photos.map(p => `
+                <img src="${p}" class="h-full w-auto object-contain snap-center rounded shadow-lg max-w-[90vw]">
+            `).join('');
+            document.getElementById('modal-gallery').classList.remove('hidden');
         };
 
         // --- GLOBAL HELPERS ---
