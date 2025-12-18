@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <!-- Viewport aggiornato per forzare la larghezza corretta -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no, maximum-scale=1.0, user-scalable=no">
     <title>BookScout Market Analyzer</title>
     
     <!-- PWA Settings -->
@@ -23,11 +23,12 @@
         html {
             width: 100%;
             height: 100%;
+            background-color: #111827; /* Previene flash bianchi */
+            overflow: hidden; /* Blocca scroll elastico del browser */
         }
         body {
             width: 100%;
-            min-height: 100vh; /* Fallback */
-            min-height: 100dvh; /* Dynamic height */
+            height: 100%;
             margin: 0;
             padding: 0;
             font-family: 'Inter', sans-serif;
@@ -35,17 +36,19 @@
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            overflow-x: hidden; /* Evita scroll orizzontale */
+            background-color: #111827; /* Fallback scuro */
+            overflow: hidden; /* Forza lo scroll interno all'app */
         }
 
         /* Il contenitore principale deve essere flessibile */
         #app-root {
             width: 100%;
-            min-height: 100dvh;
+            height: 100dvh; /* Altezza fissa viewport */
             display: flex;
             flex-direction: column;
             position: relative;
             background: rgba(17, 24, 39, 0.4); /* Sfondo scuro leggero per leggibilità */
+            overflow: hidden; /* Fondamentale per tenere l'header fisso */
         }
 
         /* Su Desktop limitiamo la larghezza */
@@ -70,6 +73,7 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             color: white;
+            z-index: 40; /* Assicura che l'header stia sopra */
         }
 
         .scan-line {
@@ -97,13 +101,13 @@
 </head>
 <body class="text-gray-800">
 
-    <div class="absolute inset-0 bg-black/40 z-0"></div>
+    <div class="absolute inset-0 bg-black/40 z-0 pointer-events-none"></div>
 
     <!-- App Container: w-full for mobile, md:max-w-md for desktop to simulate app feel -->
-    <div class="app-container relative z-10 w-full h-full flex flex-col md:max-w-md mx-auto bg-white/10 shadow-2xl overflow-hidden md:border-x md:border-white/20 transition-all duration-300">
+    <div id="app-root" class="app-container relative z-10 w-full h-full flex flex-col md:max-w-md mx-auto bg-white/10 shadow-2xl overflow-hidden md:border-x md:border-white/20 transition-all duration-300">
         
         <!-- Header -->
-        <header class="glass-dark p-4 flex justify-between items-center shadow-lg shrink-0 pt-safe-top">
+        <header class="glass-dark p-4 flex justify-between items-center shadow-lg shrink-0 pt-safe-top z-40 relative">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-book-open-reader text-emerald-400 text-xl"></i>
                 <h1 class="font-bold text-lg tracking-wide">BookScout Cloud</h1>
@@ -140,7 +144,7 @@
         </div>
 
         <!-- Main Content Area -->
-        <main id="main-content" class="flex-1 overflow-y-auto hide-scroll relative p-4 flex flex-col gap-4">
+        <main id="main-content" class="flex-1 overflow-y-auto hide-scroll relative p-4 flex flex-col gap-4 pb-20">
             
             <!-- SECTION: HOME / SCANNER -->
             <div id="section-home" class="flex flex-col h-full justify-center items-center fade-in">
@@ -498,7 +502,7 @@
                     <p class="text-xs text-gray-500 mb-4 bg-gray-100 p-2 rounded shrink-0">
                         <i class="fa-solid fa-book mr-1"></i> <span id="modal-book-title" class="font-semibold"></span>
                     </p>
-    
+   
                     <div class="mb-4">
                         <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Stato di Conservazione</h4>
                         <select id="inv-condition" onchange="toggleConditionInput()" class="w-full p-2 border border-gray-200 rounded-lg text-sm bg-white focus:border-emerald-500 outline-none font-medium text-gray-700">
@@ -775,7 +779,7 @@
             btn.innerHTML = originalText;
         };
 
-        // --- FIREBASE SETUP ---
+        // --- FIREBASE CONFIGURATION (ADAPTED) ---
         // Your web app's Firebase configuration
         // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         const firebaseConfig = {
@@ -787,6 +791,8 @@
           appId: "1:124845335540:web:79e3e82a919cf0890ccfa1",
           measurementId: "G-C1HH2R0RBB"
         };
+        
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
