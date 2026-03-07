@@ -1,0 +1,32 @@
+# Dipendenze
+node_modules/
+
+# Build
+dist/
+dist-ssr/
+
+# Env — MAI committare
+.env
+.env.local
+.env.*.local
+
+# Firebase / MCP — MAI committare
+.mcp.json
+.firebase/
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+.DS_Store
+
+# Log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript build info
+*.tsbuildinfo

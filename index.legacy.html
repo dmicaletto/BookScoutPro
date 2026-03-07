@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <!-- Viewport aggiornato per forzare la larghezza corretta -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no, maximum-scale=1.0, user-scalable=no">
+    <title>BookScout Market Analyzer</title>
+    
+    <!-- PWA Settings -->
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkJvb2tTY291dCBQcm8iLAogICJzaG9ydF9uYW1lIjogIkJvb2tTY291dCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMTExODI3IiwKICAidGhlbWVfY29sb3IiOiAiIzExMTgyNyIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImh0dHBzOi8vY2RuLWljb25zLXBuZy5mbGF0aWNvbi5jb20vNTEyLzMzODkvMzM4OTA4MS5wbmciLAogICAgICAic2l6ZXMiOiAiMTkyeDE5MiIsCiAgICAgICJ0eXBlIjogImltYWdlL3BuZyIKICAgIH0sCiAgICB7CiAgICAgICJzcmMiOiAiaHR0cHM6Ly9jZG4taWNvbnMtcG5nLmZsYXRpY29uLmNvbS81MTIvMzM4OS8zMzg5MDgxLnBuZyIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvcG5nIgogICAgfQogIF0KfQ==">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#111827">
+
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <style>
+        /* Reset più standard per evitare conflitti */
+        html {
+            width: 100%;
+            height: 100%;
+            background-color: #111827; /* Previene flash bianchi */
+            overflow: hidden; /* Blocca scroll elastico del browser */
+        }
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-image: url('https://images.unsplash.com/photo-1507842217343-583bb7260b66?q=80&w=2670&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-color: #111827; /* Fallback scuro */
+            overflow: hidden; /* Forza lo scroll interno all'app */
+        }
+
+        /* Il contenitore principale deve essere flessibile */
+        #app-root {
+            width: 100%;
+            height: 100dvh; /* Altezza fissa viewport */
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: rgba(17, 24, 39, 0.4); /* Sfondo scuro leggero per leggibilità */
+            overflow: hidden; /* Fondamentale per tenere l'header fisso */
+        }
+
+        /* Su Desktop limitiamo la larghezza */
+        @media (min-width: 640px) {
+            #app-root {
+                max-width: 480px; /* Larghezza app mobile standard */
+                margin: 0 auto;
+                border-left: 1px solid rgba(255,255,255,0.1);
+                border-right: 1px solid rgba(255,255,255,0.1);
+                box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            }
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.90);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .glass-dark {
+            background: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: white;
+            z-index: 40; /* Assicura che l'header stia sopra */
+        }
+
+        .scan-line {
+            width: 100%; height: 2px; background: #ef4444; position: absolute; top: 0; left: 0;
+            animation: scan 2s infinite linear; box-shadow: 0 0 4px #ef4444;
+        }
+        @keyframes scan { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+        
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .trend-panel { transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out; max-height: 0; overflow: hidden; opacity: 0; }
+        .trend-panel.open { max-height: 200px; opacity: 1; }
+        
+        .shimmer {
+            background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="absolute inset-0 bg-black/40 z-0 pointer-events-none"></div>
+
+    <!-- App Container: w-full for mobile, md:max-w-md for desktop to simulate app feel -->
+    <div id="app-root" class="app-container relative z-10 w-full h-full flex flex-col md:max-w-md mx-auto bg-white/10 shadow-2xl overflow-hidden md:border-x md:border-white/20 transition-all duration-300">
+        
+        <!-- Header -->
+        <header class="glass-dark p-4 flex justify-between items-center shadow-lg shrink-0 pt-safe-top z-40 relative">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-book-open-reader text-emerald-400 text-xl"></i>
+                <h1 class="font-bold text-lg tracking-wide">BookScout Cloud</h1>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="resetApiKey()" class="text-gray-400 hover:text-white text-xs" title="Reset API Key">
+                    <i class="fa-solid fa-key"></i>
+                </button>
+                <button onclick="toggleMenu()" class="text-white hover:text-emerald-400 transition">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Menu Laterale -->
+        <div id="side-menu" class="absolute inset-0 z-50 transform translate-x-full transition-transform duration-300 ease-in-out">
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleMenu()"></div>
+            <div class="absolute right-0 top-0 bottom-0 w-64 glass-dark shadow-xl flex flex-col p-6 pt-20">
+                <div class="flex justify-between items-center mb-8">
+                    <span class="font-bold text-xl text-emerald-400">Menu</span>
+                    <button onclick="toggleMenu()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+                </div>
+                <nav class="space-y-4 flex-1">
+                    <a href="#" onclick="showSection('home'); toggleMenu()" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition"><i class="fa-solid fa-barcode w-6 text-center"></i> Scansiona</a>
+                    <a href="#" onclick="showSection('inventory'); toggleMenu();" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition"><i class="fa-solid fa-boxes-stacked w-6 text-center"></i> Inventario</a>
+                    <a href="#" onclick="showSection('dashboard'); toggleMenu(); updateDashboard();" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition"><i class="fa-solid fa-chart-pie w-6 text-center"></i> Dashboard</a>
+                    <a href="#" onclick="showSection('import-export'); toggleMenu();" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition"><i class="fa-solid fa-file-import w-6 text-center"></i> Importa / Esporta</a>
+                    <div class="text-xs text-gray-500 mt-4 px-3">
+                        Status: <span id="auth-status" class="text-yellow-500">Connessione...</span>
+                        <div class="mt-1 text-[10px] text-gray-600 truncate" id="user-id-display"></div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <main id="main-content" class="flex-1 overflow-y-auto hide-scroll relative p-4 flex flex-col gap-4 pb-20">
+            
+            <!-- SECTION: HOME / SCANNER -->
+            <div id="section-home" class="flex flex-col h-full justify-center items-center fade-in">
+                
+                <div class="glass-panel p-6 rounded-2xl w-full text-center shadow-lg mb-6">
+                    <h2 class="text-2xl font-bold mb-2 text-gray-800">Analisi Rapida</h2>
+                    <p class="text-gray-600 mb-6 text-sm">Inquadra ISBN, scatta una foto alla copertina o cerca per titolo.</p>
+
+                    <!-- Scanner Box -->
+                    <div class="relative bg-gray-900 rounded-xl h-56 w-full mb-4 overflow-hidden flex items-center justify-center group cursor-pointer border-2 border-dashed border-gray-400 hover:border-emerald-500 transition" onclick="startCamera()">
+                        <div id="reader" class="w-full h-full absolute inset-0"></div>
+                        <div id="camera-placeholder" class="z-10 text-gray-400 flex flex-col items-center">
+                            <i class="fa-solid fa-barcode text-4xl mb-2 group-hover:text-emerald-400 transition"></i>
+                            <span class="text-sm">Tocca per barcode</span>
+                        </div>
+                        <div id="scan-overlay" class="hidden absolute inset-0 pointer-events-none z-20">
+                            <div class="scan-line"></div>
+                            <div class="absolute inset-0 border-2 border-red-500/50 m-8 rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Actions Grid -->
+                     <div class="grid grid-cols-5 gap-2 w-full">
+                        <!-- Cover Photo Button -->
+                         <div class="col-span-1">
+                             <input type="file" accept="image/*" capture="environment" id="cover-upload" class="hidden" onchange="handleCoverUpload(event)">
+                             <button onclick="document.getElementById('cover-upload').click()" class="w-full h-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center shadow-md transition" title="Scansiona Copertina">
+                                 <i class="fa-solid fa-camera"></i>
+                             </button>
+                         </div>
+
+                         <!-- Manual Input -->
+                         <div class="col-span-3">
+                             <input type="text" id="search-input" placeholder="ISBN o Titolo..." class="w-full h-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:border-emerald-500 text-center font-semibold text-gray-700">
+                         </div>
+
+                         <!-- Search Button -->
+                         <div class="col-span-1">
+                             <button onclick="manualSearch()" class="w-full h-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition shadow-md flex items-center justify-center">
+                                 <i class="fa-solid fa-magnifying-glass"></i>
+                             </button>
+                         </div>
+                     </div>
+                     
+                </div>
+
+                <!-- Simulation Button -->
+                <button onclick="simulateScan()" class="bg-white/90 hover:bg-white text-emerald-700 font-semibold py-2 px-6 rounded-full shadow-lg text-sm transition transform hover:scale-105">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Demo
+                </button>
+            </div>
+
+            <!-- SECTION: RESULTS / DETAILS -->
+            <div id="section-results" class="hidden flex-col gap-4 pb-20 fade-in">
+                <div class="flex justify-between items-center">
+                    <button onclick="showSection('home')" class="text-white text-sm flex items-center gap-1 hover:underline">
+                        <i class="fa-solid fa-arrow-left"></i> Torna indietro
+                    </button>
+                    <!-- Indicatore se siamo in modalità modifica -->
+                    <span id="mode-badge" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase hidden"></span>
+                </div>
+
+                <!-- Product Card -->
+                <div class="glass-panel p-4 rounded-xl flex gap-4 items-start shadow-md relative overflow-hidden">
+                    <!-- Ribbon se già in inventario -->
+                    <div id="inventory-ribbon" class="hidden absolute top-3 right-[-30px] rotate-45 bg-emerald-500 text-white text-[10px] py-1 px-8 font-bold shadow-sm">
+                        IN STOCK
+                    </div>
+
+                    <div class="relative">
+                        <img id="book-cover" src="" alt="Book Cover" class="w-24 h-36 object-cover rounded shadow-sm bg-gray-200">
+                        <!-- Icona Galleria nel dettaglio -->
+                        <button id="gallery-btn" onclick="openGallery()" class="hidden absolute bottom-1 right-1 bg-black/60 text-white w-6 h-6 rounded-full flex items-center justify-center hover:bg-black/80 transition">
+                            <i class="fa-solid fa-images text-[10px]"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-0.5 rounded-full inline-block">ID: <span id="res-isbn"></span></span>
+                            <!-- Badge condizione -->
+                            <span id="res-condition-badge" class="hidden bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded border border-gray-300 font-bold uppercase"></span>
+                        </div>
+                        
+                        <h2 id="res-title" class="font-bold text-lg leading-tight mb-1 text-gray-900">Titolo Libro</h2>
+                        <p id="res-author" class="text-gray-600 text-sm mb-3">Autore</p>
+                        
+                        <!-- Dati inventario se presenti -->
+                        <div id="inventory-location-badge" class="hidden flex gap-2 mt-2">
+                            <div class="bg-gray-800 text-white px-2 py-1 rounded text-xs flex items-center gap-2">
+                                <i class="fa-solid fa-location-dot text-emerald-400"></i>
+                                <span id="res-shelf-pos">AA-01</span>
+                                <span id="res-copies-badge" class="ml-2 bg-gray-600 px-1.5 rounded-full text-[10px]">x1</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price Comparison Grid (EDITABLE) -->
+                <h3 class="text-white text-sm font-bold ml-1 mt-2 mb-1">Strategia Prezzi</h3>
+                <div class="grid grid-cols-1 gap-3">
+                    
+                    <!-- Amazon Row -->
+                    <div class="bg-white rounded-xl shadow-sm border-l-4 border-yellow-500 overflow-hidden">
+                        <div class="p-3 flex items-center justify-between">
+                            <div class="flex items-center gap-3 w-1/3">
+                                <i class="fa-brands fa-amazon text-xl text-gray-600"></i>
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-bold text-gray-500">Mercato</span>
+                                    <span class="font-bold text-gray-800" id="price-amazon">--</span>
+                                </div>
+                            </div>
+                            <div class="flex-1 border-l border-gray-200 pl-4 flex items-center justify-between">
+                                <div class="flex flex-col justify-center w-full pr-2">
+                                    <span class="text-[10px] text-gray-400 uppercase font-bold mb-1">Il tuo prezzo</span>
+                                    <div class="flex items-center gap-2">
+                                        <div class="relative w-20">
+                                            <span class="absolute left-2 top-1.5 text-gray-500 text-sm">€</span>
+                                            <input type="number" step="0.01" id="input-price-amazon" oninput="calculateDiff('amazon')" class="w-full pl-5 pr-1 py-1 bg-gray-50 border border-gray-300 rounded text-sm font-bold focus:border-yellow-500 focus:bg-white outline-none" placeholder="-">
+                                        </div>
+                                        <div id="diff-amazon"></div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <button onclick="toggleTrend('amazon')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition shrink-0">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                    </button>
+                                    <button onclick="openSaleModal('amazon')" class="w-8 h-8 rounded-full bg-emerald-100 hover:bg-emerald-200 flex items-center justify-center text-emerald-600 transition shrink-0 shadow-sm" title="Vendi su Amazon">
+                                        <i class="fa-solid fa-cash-register"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="trend-amazon" class="trend-panel bg-gray-50 px-3 pb-3">
+                            <h4 class="text-[10px] font-bold text-gray-400 uppercase mb-2">Andamento ultimi 6 mesi</h4>
+                            <div class="h-20 flex items-end justify-between gap-1 text-[8px] text-gray-400" id="chart-amazon"></div>
+                        </div>
+                    </div>
+
+                    <!-- eBay Row -->
+                    <div class="bg-white rounded-xl shadow-sm border-l-4 border-blue-500 overflow-hidden">
+                        <div class="p-3 flex items-center justify-between">
+                            <div class="flex items-center gap-3 w-1/3">
+                                <i class="fa-brands fa-ebay text-xl text-gray-600"></i>
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-bold text-gray-500">Mercato</span>
+                                    <span class="font-bold text-gray-800" id="price-ebay">--</span>
+                                </div>
+                            </div>
+                            <div class="flex-1 border-l border-gray-200 pl-4 flex items-center justify-between">
+                                <div class="flex flex-col justify-center w-full pr-2">
+                                    <span class="text-[10px] text-gray-400 uppercase font-bold mb-1">Il tuo prezzo</span>
+                                    <div class="flex items-center gap-2">
+                                        <div class="relative w-20">
+                                            <span class="absolute left-2 top-1.5 text-gray-500 text-sm">€</span>
+                                            <input type="number" step="0.01" id="input-price-ebay" oninput="calculateDiff('ebay')" class="w-full pl-5 pr-1 py-1 bg-gray-50 border border-gray-300 rounded text-sm font-bold focus:border-blue-500 focus:bg-white outline-none" placeholder="-">
+                                        </div>
+                                        <div id="diff-ebay"></div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <button onclick="toggleTrend('ebay')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition shrink-0">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                    </button>
+                                    <button onclick="openSaleModal('ebay')" class="w-8 h-8 rounded-full bg-emerald-100 hover:bg-emerald-200 flex items-center justify-center text-emerald-600 transition shrink-0 shadow-sm" title="Vendi su eBay">
+                                        <i class="fa-solid fa-cash-register"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                         <div id="trend-ebay" class="trend-panel bg-gray-50 px-3 pb-3">
+                            <h4 class="text-[10px] font-bold text-gray-400 uppercase mb-2">Andamento ultimi 6 mesi</h4>
+                            <div class="h-20 flex items-end justify-between gap-1 text-[8px] text-gray-400" id="chart-ebay"></div>
+                        </div>
+                    </div>
+
+                     <!-- AbeBooks Row -->
+                     <div class="bg-white rounded-xl shadow-sm border-l-4 border-red-700 overflow-hidden">
+                        <div class="p-3 flex items-center justify-between">
+                            <div class="flex items-center gap-3 w-1/3">
+                                <i class="fa-solid fa-book-open text-xl text-gray-600"></i>
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-bold text-gray-500">AbeBooks</span>
+                                    <span class="font-bold text-gray-800" id="price-abebooks">--</span>
+                                </div>
+                            </div>
+                            <div class="flex-1 border-l border-gray-200 pl-4 flex items-center justify-between">
+                                <div class="flex flex-col justify-center w-full pr-2">
+                                    <span class="text-[10px] text-gray-400 uppercase font-bold mb-1">Il tuo prezzo</span>
+                                    <div class="flex items-center gap-2">
+                                        <div class="relative w-20">
+                                            <span class="absolute left-2 top-1.5 text-gray-500 text-sm">€</span>
+                                            <input type="number" step="0.01" id="input-price-abebooks" oninput="calculateDiff('abebooks')" class="w-full pl-5 pr-1 py-1 bg-gray-50 border border-gray-300 rounded text-sm font-bold focus:border-red-700 focus:bg-white outline-none" placeholder="-">
+                                        </div>
+                                        <div id="diff-abebooks"></div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <button onclick="toggleTrend('abebooks')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition shrink-0">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                    </button>
+                                    <button onclick="openSaleModal('abebooks')" class="w-8 h-8 rounded-full bg-emerald-100 hover:bg-emerald-200 flex items-center justify-center text-emerald-600 transition shrink-0 shadow-sm" title="Vendi su AbeBooks">
+                                        <i class="fa-solid fa-cash-register"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                         <div id="trend-abebooks" class="trend-panel bg-gray-50 px-3 pb-3">
+                            <h4 class="text-[10px] font-bold text-gray-400 uppercase mb-2">Andamento ultimi 6 mesi</h4>
+                            <div class="h-20 flex items-end justify-between gap-1 text-[8px] text-gray-400" id="chart-abebooks"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Action Bar with GEMINI -->
+                <div class="glass-dark p-4 rounded-xl shadow-lg mt-2 flex flex-col gap-3">
+                    <div id="strategy-box" class="relative">
+                         <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-robot text-emerald-400"></i>
+                                <h3 class="font-bold text-white text-xs uppercase">BookScout AI Insight</h3>
+                            </div>
+                            <button onclick="analyzeWithGemini()" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded-full transition shadow-lg flex items-center gap-1">
+                                <i class="fa-solid fa-sparkles"></i> Chiedi a Gemini
+                            </button>
+                        </div>
+                        <p class="text-sm text-gray-300 italic min-h-[3rem]" id="res-strategy">Clicca "Chiedi a Gemini" per analizzare il mercato...</p>
+                    </div>
+
+                    <button id="main-action-btn" onclick="openInventoryModal()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-lg font-bold transition shadow-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plus"></i> <span>Aggiungi a Inventario</span>
+                    </button>
+                </div>
+
+            </div>
+
+             <!-- SECTION: INVENTORY LIST -->
+            <div id="section-inventory" class="hidden flex-col h-full fade-in">
+                <div class="flex justify-between items-end mb-4 px-2 pt-2">
+                    <h2 class="text-2xl font-bold text-white shadow-black drop-shadow-md">Magazzino</h2>
+                    <span class="text-xs text-white bg-emerald-600 px-2 py-1 rounded-full" id="inventory-count">0</span>
+                </div>
+
+                <!-- Search Inventory -->
+                <div class="px-2 mb-2">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400"></i>
+                        <input type="text" id="inventory-search" oninput="updateInventoryView()" placeholder="Cerca titolo o scaffale..." class="w-full pl-10 pr-4 py-2 rounded-xl border-none bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:bg-white/30 backdrop-blur-sm shadow-inner transition">
+                    </div>
+                </div>
+
+                <div id="inventory-list" class="flex-1 space-y-3 pb-2 overflow-y-auto hide-scroll">
+                   <!-- Populated by Firestore -->
+                   <div class="text-center text-white mt-10">
+                       <i class="fa-solid fa-circle-notch fa-spin"></i> Caricamento...
+                   </div>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div id="pagination-controls" class="hidden flex justify-between items-center px-4 py-2 glass-panel rounded-xl mt-2 mx-1 mb-20 shrink-0">
+                    <button onclick="changePage(-1)" id="prev-page" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <span id="page-indicator" class="text-xs font-bold text-gray-700">Pagina 1 di 1</span>
+                    <button onclick="changePage(1)" id="next-page" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+             </div>
+
+             <!-- SECTION: DASHBOARD -->
+            <div id="section-dashboard" class="hidden flex-col h-full fade-in p-2 overflow-y-auto hide-scroll">
+                <div class="flex justify-between items-end mb-4 px-2 pt-2">
+                    <h2 class="text-2xl font-bold text-white shadow-black drop-shadow-md">Dashboard</h2>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-3 gap-2 mb-6">
+                    <div class="glass-panel p-3 rounded-2xl flex flex-col items-center justify-center">
+                        <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Fatturato</span>
+                        <span class="text-xl font-bold text-emerald-600 mt-1" id="kpi-revenue">€ 0.00</span>
+                    </div>
+                    <div class="glass-panel p-3 rounded-2xl flex flex-col items-center justify-center">
+                        <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Profitto</span>
+                        <span class="text-xl font-bold text-indigo-600 mt-1" id="kpi-profit">€ 0.00</span>
+                    </div>
+                    <div class="glass-panel p-3 rounded-2xl flex flex-col items-center justify-center">
+                        <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Vendite</span>
+                        <span class="text-xl font-bold text-blue-600 mt-1" id="kpi-sales">0</span>
+                    </div>
+                </div>
+
+                <!-- Channel Strategy Chart -->
+                <div class="glass-panel p-4 rounded-2xl mb-6">
+                    <h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-indigo-500"></i> Profitto per Canale
+                    </h3>
+                    <div class="space-y-3" id="channel-chart">
+                        <!-- Bars injected by JS -->
+                        <p class="text-xs text-gray-400 italic text-center">Nessuna vendita registrata.</p>
+                    </div>
+                </div>
+
+                <!-- Oldest Inventory -->
+                <div class="glass-panel p-4 rounded-2xl mb-20">
+                    <h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-hourglass-half text-orange-500"></i> Giacenza Maggiore
+                    </h3>
+                    <div class="space-y-2" id="oldest-inventory-list">
+                        <!-- List injected by JS -->
+                        <p class="text-xs text-gray-400 italic text-center">Inventario vuoto o recente.</p>
+                    </div>
+                </div>
+             </div>
+
+             <!-- SECTION: IMPORT / EXPORT -->
+             <div id="section-import-export" class="hidden flex-col h-full fade-in p-2">
+                <div class="glass-panel p-6 rounded-2xl w-full text-center shadow-lg mb-6">
+                    <h2 class="text-2xl font-bold mb-2 text-gray-800">Dati & Backup</h2>
+                    <p class="text-gray-600 mb-6 text-sm">Gestisci il tuo inventario in modo massivo.</p>
+
+                    <div class="space-y-4">
+                        <button onclick="exportToCSV()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition shadow-md flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-file-export"></i> Esporta tutto in CSV
+                        </button>
+
+                        <div class="relative border-t border-gray-200 my-4">
+                            <span class="absolute top-[-10px] left-1/2 transform -translate-x-1/2 bg-white px-2 text-xs text-gray-400">OPPURE</span>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <label class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold transition shadow-md flex items-center justify-center gap-2 cursor-pointer">
+                                <i class="fa-solid fa-file-import"></i> Importa CSV
+                                <input type="file" id="csv-file-input" accept=".csv" class="hidden" onchange="importFromCSV(this)">
+                            </label>
+                            <button onclick="openInfoModal()" class="w-12 bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-xl font-bold transition flex items-center justify-center" title="Info Formato CSV">
+                                <i class="fa-solid fa-info"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+             </div>
+
+        </main>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="hidden absolute inset-0 bg-black/80 z-50 flex-col items-center justify-center text-white backdrop-blur-sm">
+            <i class="fa-solid fa-circle-notch fa-spin text-4xl text-emerald-500 mb-4"></i>
+            <p class="animate-pulse" id="loading-text">Elaborazione...</p>
+        </div>
+
+        <!-- Add/Edit Modal (With Gemini & Purchase Cost & Photos) -->
+        <div id="modal-inventory" class="hidden absolute inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm fade-in">
+            <div class="bg-white w-[90%] sm:max-w-sm p-6 rounded-2xl shadow-2xl animate-slide-up flex flex-col max-h-[90vh]">
+                <div class="flex justify-between items-center mb-4 shrink-0">
+                    <h3 class="font-bold text-lg text-gray-800" id="modal-title">Logistica Magazzino</h3>
+                    <button onclick="closeInventoryModal()" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+                
+                <div class="overflow-y-auto hide-scroll flex-1">
+                    <p class="text-xs text-gray-500 mb-4 bg-gray-100 p-2 rounded shrink-0">
+                        <i class="fa-solid fa-book mr-1"></i> <span id="modal-book-title" class="font-semibold"></span>
+                    </p>
+   
+                    <div class="mb-4">
+                        <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Stato di Conservazione</h4>
+                        <select id="inv-condition" onchange="toggleConditionInput()" class="w-full p-2 border border-gray-200 rounded-lg text-sm bg-white focus:border-emerald-500 outline-none font-medium text-gray-700">
+                            <option value="Nuovo">Nuovo</option>
+                            <option value="Come Nuovo">Come Nuovo</option>
+                            <option value="Ottimo">Ottimo</option>
+                            <option value="Buono">Buono</option>
+                            <option value="Accettabile">Accettabile</option>
+                            <option value="Altro">Altro (descrivi)</option>
+                        </select>
+                        <input type="text" id="inv-condition-custom" class="w-full mt-2 p-2 border border-gray-200 rounded-lg text-sm hidden focus:border-emerald-500 outline-none" placeholder="Es. Copertina strappata, dedica...">
+                        
+                        <!-- Photo Upload Section -->
+                        <div class="mt-4">
+                            <label class="text-[10px] text-gray-400 block mb-1 flex justify-between">
+                                <span>Foto Condizioni (Max 3)</span>
+                                <span class="text-xs" id="photo-count">0/3</span>
+                            </label>
+                            <div class="flex gap-2 items-center">
+                                <input type="file" id="inv-photo-input" accept="image/*" capture="environment" class="hidden" onchange="handlePhotoUpload(event)">
+                                <button onclick="document.getElementById('inv-photo-input').click()" id="add-photo-btn" class="w-16 h-16 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-emerald-500 hover:text-emerald-500 transition">
+                                    <i class="fa-solid fa-camera text-xl"></i>
+                                </button>
+                                <!-- Thumbnails Container -->
+                                <div id="photo-thumbnails" class="flex gap-2 overflow-x-auto hide-scroll"></div>
+                            </div>
+                            <p class="text-[9px] text-gray-400 mt-1 italic">* Le foto verranno compresse automaticamente.</p>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="text-[10px] text-gray-400 mb-1 flex justify-between items-center">
+                                <span>Note di Vendita</span>
+                                <button onclick="generateDescriptionWithGemini()" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> Genera con IA
+                                </button>
+                            </label>
+                            <textarea id="inv-notes" rows="3" class="w-full p-2 border border-gray-200 rounded-lg text-sm focus:border-emerald-500 outline-none" placeholder="Descrizione dettagliata del libro..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Collocazione & Copie</h4>
+                        <div class="flex gap-3">
+                            <div class="flex-1">
+                                <input type="text" id="inv-shelf" maxlength="2" class="w-full text-center text-xl font-mono font-bold border-2 border-gray-200 rounded-lg p-2 focus:border-emerald-500 uppercase" placeholder="AA" oninput="this.value = this.value.toUpperCase()">
+                                <label class="text-[10px] text-gray-400 block text-center mt-1">Scaffale</label>
+                            </div>
+                            <div class="flex-1">
+                                <input type="number" id="inv-pos" maxlength="2" class="w-full text-center text-xl font-mono font-bold border-2 border-gray-200 rounded-lg p-2 focus:border-emerald-500" placeholder="01">
+                                <label class="text-[10px] text-gray-400 block text-center mt-1">Posizione</label>
+                            </div>
+                            <div class="w-20">
+                                <input type="number" id="inv-copies" min="1" class="w-full text-center text-xl font-mono font-bold border-2 border-gray-200 rounded-lg p-2 focus:border-emerald-500" placeholder="1" value="1">
+                                <label class="text-[10px] text-gray-400 block text-center mt-1">Copie</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Purchase Cost Input -->
+                    <div class="mb-4">
+                         <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Dati Acquisto</h4>
+                         <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-gray-500 text-sm">€</span>
+                            <input type="number" step="0.01" id="inv-purchase-price" class="w-full pl-7 pr-3 py-2 border border-gray-200 rounded-lg text-sm font-bold focus:border-emerald-500 outline-none" placeholder="0.00">
+                            <label class="text-[10px] text-gray-400 block mt-1">Costo Acquisto (per copia)</label>
+                         </div>
+                    </div>
+                    
+                    <p class="text-[10px] text-gray-400 italic text-center mb-2">
+                        * I prezzi di vendita sono stati salvati dalla schermata precedente.
+                    </p>
+                </div>
+
+                <button onclick="saveToFirestore()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition shadow-lg shrink-0 mt-2">
+                    <span id="modal-save-btn">Conferma e Salva</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Sales Confirmation Modal (With Shipping) -->
+        <div id="modal-sale" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm fade-in">
+            <div class="bg-white w-[90%] sm:max-w-sm p-6 rounded-2xl shadow-2xl flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg text-gray-800">Registra Vendita</h3>
+                    <button onclick="document.getElementById('modal-sale').classList.add('hidden')" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+                
+                <div class="bg-emerald-50 border border-emerald-100 p-3 rounded-lg mb-4 flex items-center gap-3">
+                    <div id="sale-channel-icon" class="text-2xl text-emerald-600"></div>
+                    <div>
+                        <p class="text-xs text-emerald-800 font-bold uppercase">Canale</p>
+                        <p class="font-bold text-gray-800 capitalize" id="sale-channel-name">Amazon</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label class="text-xs text-gray-500 font-bold block mb-1">Prezzo Finale di Vendita (€)</label>
+                        <input type="number" step="0.01" id="sale-price" class="w-full text-center text-2xl font-bold p-3 border-2 border-emerald-500 rounded-xl focus:outline-none text-emerald-700 bg-white">
+                    </div>
+                    
+                    <!-- Shipping Cost Input -->
+                    <div>
+                        <label class="text-xs text-gray-500 font-bold block mb-1">Spese Spedizione / Commissioni (€)</label>
+                        <input type="number" step="0.01" id="sale-shipping" class="w-full text-center text-lg font-bold p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500 bg-gray-50" placeholder="0.00">
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-gray-500 font-bold block mb-1">Copie Vendute (Max: <span id="sale-max-copies">1</span>)</label>
+                        <div class="flex items-center gap-2">
+                            <button onclick="adjustSaleCopies(-1)" class="w-10 h-10 rounded-lg bg-gray-200 hover:bg-gray-300 font-bold">-</button>
+                            <input type="number" id="sale-copies" value="1" min="1" readonly class="flex-1 text-center font-bold p-2 bg-gray-50 rounded-lg">
+                            <button onclick="adjustSaleCopies(1)" class="w-10 h-10 rounded-lg bg-gray-200 hover:bg-gray-300 font-bold">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="confirmSale()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check"></i> Conferma Vendita
+                </button>
+            </div>
+        </div>
+
+        <!-- Search Results Selection Modal -->
+        <div id="modal-search-results" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm fade-in">
+            <div class="bg-white w-[90%] sm:max-w-sm p-4 rounded-2xl shadow-2xl flex flex-col max-h-[80vh]">
+                <div class="flex justify-between items-center mb-4 shrink-0">
+                    <h3 class="font-bold text-lg text-gray-800">Seleziona Libro</h3>
+                    <button onclick="closeSearchModal()" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+                <div id="search-results-list" class="overflow-y-auto hide-scroll flex-1 space-y-2">
+                    <!-- Results injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- CSV Info Modal -->
+        <div id="modal-csv-info" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm fade-in">
+            <div class="bg-white w-[90%] sm:max-w-sm p-6 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+                <div class="flex justify-between items-center mb-4 shrink-0">
+                    <h3 class="font-bold text-lg text-gray-800">Formato CSV</h3>
+                    <button onclick="document.getElementById('modal-csv-info').classList.add('hidden')" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+                <div class="overflow-y-auto hide-scroll flex-1 text-sm text-gray-600">
+                    <p class="mb-2">Per importare correttamente i dati, il file CSV deve avere le seguenti colonne:</p>
+                    <ul class="list-disc pl-5 space-y-1 mb-4 text-xs font-mono bg-gray-100 p-2 rounded">
+                        <li>isbn</li>
+                        <li>title</li>
+                        <li>author</li>
+                        <li>shelf (es. AA)</li>
+                        <li>position (es. 01)</li>
+                        <li>copies</li>
+                        <li>condition</li>
+                        <li>price_amazon</li>
+                        <li>price_ebay</li>
+                        <li>price_abebooks</li>
+                        <li>purchase_price</li>
+                        <li>notes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Photo Gallery Modal -->
+        <div id="modal-gallery" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md fade-in">
+            <div class="relative w-full h-full flex flex-col">
+                <div class="flex justify-between items-center p-4 absolute top-0 w-full z-10 bg-gradient-to-b from-black/50 to-transparent">
+                    <h3 class="font-bold text-white">Foto Libro</h3>
+                    <button onclick="document.getElementById('modal-gallery').classList.add('hidden')" class="text-white hover:text-gray-300">
+                        <i class="fa-solid fa-xmark text-2xl"></i>
+                    </button>
+                </div>
+                
+                <div id="gallery-container" class="flex-1 flex items-center overflow-x-auto snap-x snap-mandatory gap-4 p-4 hide-scroll">
+                    <!-- Photos injected here -->
+                </div>
+                <div class="p-4 text-center text-gray-400 text-xs">Scorri orizzontalmente</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // --- GOOGLE API & GEMINI ---
+        let googleUserApiKey = localStorage.getItem('bookscout_api_key') || "";
+
+        window.resetApiKey = () => {
+            if(confirm("Vuoi cambiare la tua Google API Key?")) {
+                localStorage.removeItem('bookscout_api_key');
+                googleUserApiKey = "";
+                alert("Key rimossa. Ti verrà richiesta al prossimo utilizzo delle funzioni IA.");
+            }
+        };
+
+        const getGoogleKey = () => {
+            if (googleUserApiKey) return googleUserApiKey;
+            const key = prompt("Inserisci la tua Google API Key (con abilitate Vision API e Gemini API):");
+            if (key && key.trim() !== "") {
+                googleUserApiKey = key.trim();
+                localStorage.setItem('bookscout_api_key', googleUserApiKey);
+                return googleUserApiKey;
+            }
+            alert("API Key necessaria per questa funzione.");
+            return null;
+        };
+
+        async function callGemini(prompt) {
+            const userKey = getGoogleKey();
+            if (!userKey) return null; 
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${userKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        throw new Error("Errore 403: API Key non valida o servizio 'Generative Language API' non abilitato nella Google Cloud Console.");
+                    }
+                    throw new Error(`API Error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                return data.candidates?.[0]?.content?.parts?.[0]?.text || "Errore nella generazione.";
+            } catch (error) {
+                console.error("Gemini Error:", error);
+                alert(error.message); 
+                return null;
+            }
+        }
+
+        window.analyzeWithGemini = async () => {
+            if(!currentViewedBook) return;
+            const btn = document.querySelector('#strategy-box button');
+            const output = document.getElementById('res-strategy');
+            const originalIcon = btn.innerHTML;
+            
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Analisi...`;
+            btn.disabled = true;
+            output.className = "text-sm text-gray-300 italic min-h-[3rem] shimmer rounded p-2";
+            output.innerText = ""; 
+
+            const book = currentViewedBook.book;
+            const cond = currentViewedBook.condition || "Buono";
+            const prompt = `
+            Sei un esperto libraio antiquario e di libri usati. Analizza questo libro e dammi una strategia di vendita.
+            
+            LIBRO: ${book.title} di ${book.author}
+            ISBN: ${book.isbn}
+            CONDIZIONI: ${cond}
+            
+            PREZZI DI MERCATO ATTUALI:
+            - Amazon: ${book.prices.amazon}
+            - eBay: ${book.prices.ebay}
+            - AbeBooks: ${book.prices.abebooks}
+            
+            Rispondi in massimo 3 frasi brevi. Consiglia un prezzo di vendita competitivo e su quale canale puntare (Arbitraggio, Vendita Diretta, etc). Sii diretto.
+            `;
+
+            const result = await callGemini(prompt);
+            
+            if (result) {
+                output.className = "text-sm text-gray-200 leading-relaxed";
+                output.innerText = result;
+            } else {
+                output.innerText = "Clicca 'Chiedi a Gemini' per analizzare il mercato...";
+                output.className = "text-sm text-gray-300 italic min-h-[3rem]";
+            }
+            btn.innerHTML = originalIcon;
+            btn.disabled = false;
+        };
+
+        window.generateDescriptionWithGemini = async () => {
+            if(!currentViewedBook) return;
+            const field = document.getElementById('inv-notes');
+            const btn = document.querySelector('label button');
+            const originalText = btn.innerHTML;
+
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Generazione...`;
+            field.placeholder = "L'IA sta scrivendo per te...";
+            
+            const book = currentViewedBook.book;
+            let cond = document.getElementById('inv-condition').value;
+            if (cond === 'Altro') cond = document.getElementById('inv-condition-custom').value;
+
+            const prompt = `
+            Scrivi una breve nota di vendita accattivante (max 30 parole) per questo libro usato da inserire nell'inventario.
+            Titolo: ${book.title}
+            Autore: ${book.author}
+            Condizioni: ${cond}
+            
+            Usa un tono professionale ma persuasivo. Menziona le condizioni se sono ottime.
+            `;
+
+            const result = await callGemini(prompt);
+            
+            if (result) {
+                field.value = result.trim();
+            }
+            btn.innerHTML = originalText;
+        };
+
+		// --- FIREBASE SETUP ---
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyDDQlIeeWw19Eo6qnszCyrXyG4Bc35BLhk",
+          authDomain: "bookscoutpro.firebaseapp.com",
+          projectId: "bookscoutpro",
+          storageBucket: "bookscoutpro.firebasestorage.app",
+          messagingSenderId: "124845335540",
+          appId: "1:124845335540:web:79e3e82a919cf0890ccfa1",
+          measurementId: "G-C1HH2R0RBB"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        let currentUser = null;
+        let allInventory = []; 
+        let allSales = []; // Stores sales history
+        let currentViewedBook = null; 
+        let isEditingMode = false; 
+        let currentDocId = null;
+        let currentSearchResults = []; 
+        let currentPhotos = []; // Store base64 photos for current edit session
+        
+        let currentPage = 1;
+        const ITEMS_PER_PAGE = 10;
+
+        const initAuth = async () => {
+            try {
+                await setPersistence(auth, browserLocalPersistence);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth Error:", error);
+                document.getElementById('auth-status').innerText = "Errore";
+                document.getElementById('auth-status').className = "text-red-500";
+            }
+        };
+
+        initAuth();
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-status').innerText = "Online";
+                document.getElementById('auth-status').className = "text-emerald-500";
+                
+                document.getElementById('user-id-display').innerText = `ID: ${user.uid.substring(0,6)}...`;
+
+                // Listen to Inventory
+                const qInv = query(collection(db, 'artifacts', appId, 'users', user.uid, 'inventory'));
+                onSnapshot(qInv, (snapshot) => {
+                    allInventory = snapshot.docs.map(doc => ({
+                        firestoreId: doc.id,
+                        ...doc.data()
+                    }));
+                    updateInventoryView(); 
+                    if(!document.getElementById('section-dashboard').classList.contains('hidden')) updateDashboard(); // Refresh dashboard if open
+                }, (error) => console.error("Inventory Error:", error));
+
+                // Listen to Sales (New)
+                const qSales = query(collection(db, 'artifacts', appId, 'users', user.uid, 'sales'));
+                onSnapshot(qSales, (snapshot) => {
+                    allSales = snapshot.docs.map(doc => doc.data());
+                    if(!document.getElementById('section-dashboard').classList.contains('hidden')) updateDashboard(); // Refresh dashboard if open
+                }, (error) => console.error("Sales Error:", error));
+            }
+        });
+
+        // --- SALES LOGIC ---
+        let saleChannel = "";
+        
+        window.openSaleModal = (channel) => {
+            if(!currentViewedBook || !isEditingMode) {
+                alert("Devi prima aggiungere il libro all'inventario per venderlo.");
+                return;
+            }
+            
+            saleChannel = channel;
+            
+            // Setup UI
+            const iconMap = {
+                amazon: '<i class="fa-brands fa-amazon"></i>',
+                ebay: '<i class="fa-brands fa-ebay"></i>',
+                abebooks: '<i class="fa-solid fa-book-open"></i>'
+            };
+            document.getElementById('sale-channel-icon').innerHTML = iconMap[channel];
+            document.getElementById('sale-channel-name').innerText = channel;
+            
+            // Pre-fill price from user setting, fallback to 0
+            const userPrice = currentViewedBook.myPrices?.[channel];
+            document.getElementById('sale-price').value = userPrice || "";
+            document.getElementById('sale-shipping').value = ""; // Reset shipping
+            
+            // Max copies check
+            const max = currentViewedBook.copies || 1;
+            document.getElementById('sale-max-copies').innerText = max;
+            document.getElementById('sale-copies').max = max;
+            document.getElementById('sale-copies').value = 1;
+            
+            document.getElementById('modal-sale').classList.remove('hidden');
+        };
+
+        window.adjustSaleCopies = (delta) => {
+            const el = document.getElementById('sale-copies');
+            let val = parseInt(el.value) + delta;
+            const max = parseInt(document.getElementById('sale-max-copies').innerText);
+            if(val < 1) val = 1;
+            if(val > max) val = max;
+            el.value = val;
+        };
+
+        window.confirmSale = async () => {
+            if (!currentUser) return;
+            const price = parseFloat(document.getElementById('sale-price').value);
+            const shipping = parseFloat(document.getElementById('sale-shipping').value) || 0;
+            const copiesSold = parseInt(document.getElementById('sale-copies').value);
+            // Get purchase price from inventory item
+            const purchasePrice = parseFloat(currentViewedBook.purchasePrice) || 0;
+            
+            if(!price || price < 0) return alert("Inserisci un prezzo valido.");
+            
+            showLoader(true, "Registrazione vendita...");
+            
+            try {
+                // 1. Record Sale (Snapshotting all costs)
+                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'sales'), {
+                    bookTitle: currentViewedBook.book.title,
+                    isbn: currentViewedBook.book.isbn,
+                    channel: saleChannel,
+                    price: price,
+                    shippingCost: shipping,
+                    purchasePrice: purchasePrice, // Snapshot cost at time of sale
+                    quantity: copiesSold,
+                    dateSold: new Date().toISOString()
+                });
+
+                // 2. Update Inventory
+                const newCopies = (currentViewedBook.copies || 1) - copiesSold;
+                
+                if (newCopies > 0) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory', currentViewedBook.firestoreId), {
+                        copies: newCopies
+                    });
+                    currentViewedBook.copies = newCopies;
+                } else {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory', currentViewedBook.firestoreId));
+                    document.getElementById('modal-sale').classList.add('hidden');
+                    showLoader(false);
+                    alert("Vendita registrata! Libro esaurito e rimosso dall'inventario attivo.");
+                    window.showSection('home');
+                    return;
+                }
+
+                document.getElementById('modal-sale').classList.add('hidden');
+                showLoader(false);
+                alert("Vendita registrata!");
+                openDetailView(currentViewedBook, true);
+
+            } catch(e) {
+                console.error(e);
+                showLoader(false);
+                alert("Errore durante la vendita.");
+            }
+        };
+
+        // --- DASHBOARD LOGIC ---
+        
+        window.updateDashboard = () => {
+            // 1. KPIs
+            let totalRevenue = 0;
+            let totalProfit = 0;
+            let totalItemsSold = 0;
+
+            const channelStats = { amazon: 0, ebay: 0, abebooks: 0 }; // Tracks PROFIT per channel
+
+            allSales.forEach(s => {
+                const qty = s.quantity || 1;
+                const revenue = s.price * qty;
+                const cost = (s.purchasePrice || 0) * qty;
+                const shipping = (s.shippingCost || 0); // Shipping is usually per transaction/package, but here simplified
+
+                const profit = revenue - shipping - cost;
+
+                totalRevenue += revenue;
+                totalProfit += profit;
+                totalItemsSold += qty;
+
+                if(channelStats[s.channel] !== undefined) channelStats[s.channel] += profit;
+            });
+            
+            document.getElementById('kpi-revenue').innerText = `€ ${totalRevenue.toFixed(2)}`;
+            document.getElementById('kpi-profit').innerText = `€ ${totalProfit.toFixed(2)}`;
+            document.getElementById('kpi-sales').innerText = totalItemsSold;
+
+            // 2. Channel Strategy Chart (Now shows Profit)
+            const maxVal = Math.max(...Object.values(channelStats), 1); 
+            const channels = ['amazon', 'ebay', 'abebooks'];
+            const colors = { amazon: 'bg-yellow-400', ebay: 'bg-blue-500', abebooks: 'bg-red-600' };
+            const names = { amazon: 'Amazon', ebay: 'eBay', abebooks: 'AbeBooks' };
+
+            let chartHtml = "";
+            let hasData = false;
+            
+            channels.forEach(ch => {
+                const val = channelStats[ch];
+                if(val !== 0) hasData = true; // Allow negative profit to show?
+                const pct = Math.max((val / maxVal) * 100, 0); // Simple positive bar for now
+                chartHtml += `
+                    <div class="mb-2">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="font-bold text-gray-600">${names[ch]}</span>
+                            <span class="${val >= 0 ? 'text-emerald-600' : 'text-red-500'} font-bold">€ ${val.toFixed(2)}</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="${colors[ch]} h-2.5 rounded-full" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('channel-chart').innerHTML = hasData ? chartHtml : '<p class="text-xs text-gray-400 italic text-center">Nessuna vendita registrata.</p>';
+
+            // 3. Oldest Inventory
+            const sortedInv = [...allInventory].sort((a, b) => {
+                const d1 = new Date(a.dateAdded || Date.now());
+                const d2 = new Date(b.dateAdded || Date.now());
+                return d1 - d2;
+            }).slice(0, 5);
+
+            let listHtml = "";
+            if(sortedInv.length > 0) {
+                sortedInv.forEach(item => {
+                    const days = Math.floor((new Date() - new Date(item.dateAdded)) / (1000 * 60 * 60 * 24));
+                    listHtml += `
+                        <div class="flex justify-between items-center p-2 border-b border-gray-100 last:border-0">
+                            <div class="truncate pr-2">
+                                <p class="text-xs font-bold text-gray-800 truncate">${item.book.title}</p>
+                                <p class="text-[10px] text-gray-500">Scaffale: ${item.location.shelf}-${item.location.position}</p>
+                            </div>
+                            <span class="text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded whitespace-nowrap">${days} gg</span>
+                        </div>
+                    `;
+                });
+            } else {
+                listHtml = '<p class="text-xs text-gray-400 italic text-center">Inventario vuoto.</p>';
+            }
+            document.getElementById('oldest-inventory-list').innerHTML = listHtml;
+        };
+
+
+        // --- IMPORT / EXPORT LOGIC ---
+
+        window.openInfoModal = () => {
+            document.getElementById('modal-csv-info').classList.remove('hidden');
+        };
+
+        window.exportToCSV = () => {
+            if (!allInventory || allInventory.length === 0) {
+                alert("Nessun dato da esportare.");
+                return;
+            }
+
+            // Headers
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "isbn,title,author,shelf,position,copies,condition,price_amazon,price_ebay,price_abebooks,purchase_price,notes,date_added\n";
+
+            // Rows
+            allInventory.forEach(item => {
+                const row = [
+                    `"${item.book.isbn || ''}"`,
+                    `"${(item.book.title || '').replace(/"/g, '""')}"`,
+                    `"${(item.book.author || '').replace(/"/g, '""')}"`,
+                    `"${item.location.shelf || ''}"`,
+                    `"${item.location.position || ''}"`,
+                    `"${item.copies || 1}"`,
+                    `"${(item.condition || '').replace(/"/g, '""')}"`,
+                    `"${item.myPrices?.amazon || ''}"`,
+                    `"${item.myPrices?.ebay || ''}"`,
+                    `"${item.myPrices?.abebooks || ''}"`,
+                    `"${item.purchasePrice || ''}"`, // Export Purchase Price
+                    `"${(item.notes || '').replace(/"/g, '""')}"`,
+                    `"${item.dateAdded || ''}"`
+                ].join(",");
+                csvContent += row + "\n";
+            });
+
+            // Download Trigger
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "bookscout_inventory.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        window.importFromCSV = (input) => {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const text = e.target.result;
+                const rows = text.split('\n');
+                if (rows.length < 2) return; 
+
+                const headers = rows[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
+                const inventoryCollection = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory');
+                
+                showLoader(true, "Importazione in corso...");
+                let successCount = 0;
+                
+                for (let i = 1; i < rows.length; i++) {
+                    const cols = rows[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g); 
+                    const simpleCols = rows[i].split(',');
+
+                    if (!simpleCols || simpleCols.length < 3) continue; 
+
+                    const getVal = (headerName) => {
+                        const idx = headers.indexOf(headerName);
+                        if (idx === -1) return "";
+                        let val = simpleCols[idx] || "";
+                        return val.replace(/^"|"$/g, '').replace(/""/g, '"').trim();
+                    };
+
+                    const newItem = {
+                        book: {
+                            isbn: getVal('isbn') || "NO-ISBN",
+                            title: getVal('title') || "Titolo Importato",
+                            author: getVal('author') || "Autore Importato",
+                            cover: "https://via.placeholder.com/150x200?text=No+Cover", 
+                            prices: { amazon: "Vedi", ebay: "Vedi", abebooks: "Vedi" },
+                            strategy: "Importato da CSV"
+                        },
+                        location: {
+                            shelf: getVal('shelf').toUpperCase() || "XX",
+                            position: getVal('position').padStart(2, '0') || "00"
+                        },
+                        copies: parseInt(getVal('copies')) || 1,
+                        condition: getVal('condition') || "Buono",
+                        myPrices: {
+                            amazon: getVal('price_amazon'),
+                            ebay: getVal('price_ebay'),
+                            abebooks: getVal('price_abebooks')
+                        },
+                        purchasePrice: parseFloat(getVal('purchase_price')) || 0, // Import purchase price
+                        notes: getVal('notes'),
+                        dateAdded: new Date().toISOString()
+                    };
+
+                    try {
+                        await addDoc(inventoryCollection, newItem);
+                        successCount++;
+                    } catch(err) {
+                        console.error("Error adding row " + i, err);
+                    }
+                }
+
+                showLoader(false);
+                alert(`Importazione completata: ${successCount} libri aggiunti.`);
+                input.value = ''; 
+                window.showSection('inventory');
+            };
+            reader.readAsText(file);
+        };
+
+
+        // --- INVENTORY VIEW LOGIC ---
+        
+        window.updateInventoryView = () => {
+            const searchTerm = document.getElementById('inventory-search').value.toLowerCase().trim();
+            const container = document.getElementById('inventory-list');
+            const countEl = document.getElementById('inventory-count');
+            const controls = document.getElementById('pagination-controls');
+
+            let filtered = allInventory.filter(item => {
+                const titleMatch = item.book.title.toLowerCase().includes(searchTerm);
+                const shelfMatch = (item.location.shelf + item.location.position).toLowerCase().includes(searchTerm);
+                const shelfOnlyMatch = item.location.shelf.toLowerCase().includes(searchTerm);
+                return titleMatch || shelfMatch || shelfOnlyMatch;
+            });
+
+            filtered.sort((a, b) => {
+                const dateA = a.dateAdded || ""; 
+                const dateB = b.dateAdded || "";
+                return dateB.localeCompare(dateA);
+            });
+
+            countEl.innerText = filtered.length;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="glass-panel p-6 text-center text-gray-500 rounded-xl m-4">Nessun libro trovato.</div>`;
+                controls.classList.add('hidden');
+                return;
+            }
+
+            const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+            if(currentPage > totalPages) currentPage = 1;
+            if(currentPage < 1) currentPage = 1;
+
+            const start = (currentPage - 1) * ITEMS_PER_PAGE;
+            const paginatedItems = filtered.slice(start, start + ITEMS_PER_PAGE);
+
+            container.innerHTML = paginatedItems.map(item => {
+                const cond = item.condition || "Buono";
+                let condColor = "bg-gray-100 text-gray-500";
+                if(cond.includes("Nuovo") || cond.includes("Ottimo")) condColor = "bg-emerald-100 text-emerald-700";
+                else if(cond.includes("Accettabile") || cond.includes("Danneggiato")) condColor = "bg-orange-100 text-orange-700";
+                const displayCond = cond.length > 10 ? cond.substring(0,8) + ".." : cond;
+
+                return `
+                <div onclick="processSearch('${item.book.isbn === "NO-ISBN" ? item.book.title : item.book.isbn}')" class="glass-panel p-3 rounded-xl flex gap-3 items-center shadow-sm mx-1 cursor-pointer hover:bg-white/40 transition">
+                    <div class="bg-gray-800 text-white w-12 h-12 rounded-lg flex flex-col items-center justify-center shrink-0 border border-emerald-500/50 relative">
+                        <span class="text-[10px] font-bold text-emerald-400">${item.location.shelf}</span>
+                        <span class="text-md font-bold leading-none">${item.location.position}</span>
+                        ${(item.copies && item.copies > 1) ? 
+                            `<div class="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-bold w-5 h-5 flex items-center justify-center rounded-full border border-white">x${item.copies}</div>` 
+                            : ''}
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-gray-900 truncate text-sm max-w-[70%]">${item.book.title}</h4>
+                            <span class="text-[9px] px-1.5 rounded font-bold uppercase ${condColor}">${displayCond}</span>
+                        </div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-[10px] bg-gray-200 text-gray-600 px-1.5 rounded">Mkt: €${item.book.prices.amazon}</span>
+                            ${item.myPrices?.amazon ? `<span class="text-[10px] bg-blue-100 text-blue-700 px-1.5 rounded font-bold">Tu: €${item.myPrices.amazon}</span>` : ''}
+                        </div>
+                    </div>
+                    <button onclick="deleteItem(event, '${item.firestoreId}')" class="w-8 h-8 rounded-full bg-red-100 text-red-500 hover:bg-red-200 flex items-center justify-center transition shrink-0 ml-1">
+                        <i class="fa-solid fa-trash-can text-sm"></i>
+                    </button>
+                </div>
+            `}).join('');
+
+            controls.classList.remove('hidden');
+            document.getElementById('page-indicator').innerText = `Pagina ${currentPage} di ${totalPages}`;
+            document.getElementById('prev-page').disabled = currentPage === 1;
+            document.getElementById('next-page').disabled = currentPage === totalPages;
+        }
+
+        window.changePage = (delta) => {
+            currentPage += delta;
+            updateInventoryView();
+            document.getElementById('inventory-list').scrollTop = 0;
+        }
+
+        // --- CORE LOGIC ---
+
+        window.manualSearch = () => {
+            const query = document.getElementById('search-input').value;
+            if(query.length > 2) processSearch(query);
+            else alert("Inserisci almeno 3 caratteri");
+        };
+
+        window.handleCoverUpload = async (event) => {
+            const file = event.target.files[0];
+            if(!file) return;
+
+            // 1. Get Key
+            const userKey = getGoogleKey();
+            if(!userKey) {
+                alert("API Key necessaria per l'analisi copertina.");
+                return;
+            }
+
+            showLoader(true, "Lettura Copertina (Vision API)...");
+
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                const base64Data = reader.result.split(',')[1]; // Remove data:image/... base64 header
+
+                try {
+                    // 2. Call Google Cloud Vision API
+                    const response = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${userKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            requests: [{
+                                image: { content: base64Data },
+                                features: [{ type: 'TEXT_DETECTION', maxResults: 5 }] // Focus on text
+                            }]
+                        })
+                    });
+
+                    if(!response.ok) throw new Error("Errore API Google Vision");
+                    
+                    const data = await response.json();
+                    
+                    // 3. Extract Text
+                    if (data.responses && data.responses[0].fullTextAnnotation) {
+                        const rawText = data.responses[0].fullTextAnnotation.text;
+                        // Clean text: remove newlines, take first 50 chars for search
+                        const cleanText = rawText.replace(/\n/g, " ").trim();
+                        
+                        showLoader(false);
+                        const confirmedText = prompt("Testo rilevato. Conferma o modifica per la ricerca:", cleanText);
+                        
+                        if(confirmedText) {
+                            document.getElementById('search-input').value = confirmedText;
+                            processSearch(confirmedText);
+                        }
+                    } else {
+                        showLoader(false);
+                        alert("Nessun testo rilevato chiaramente sulla copertina.");
+                    }
+
+                } catch (error) {
+                    console.error(error);
+                    showLoader(false);
+                    alert("Errore Vision API: " + error.message);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        window.simulateScan = () => {
+            const demoQueries = ["9788845247486", "Il Signore degli Anelli", "1984 Orwell", "9780201633610"];
+            const randomQ = demoQueries[Math.floor(Math.random() * demoQueries.length)];
+            document.getElementById('search-input').value = randomQ; 
+            processSearch(randomQ);
+        };
+
+        window.processSearch = async (queryInput) => {
+            showLoader(true, "Ricerca dati...");
+            const rawInput = queryInput.trim();
+            const isIsbn = /^[\d-X]{10,17}$/i.test(rawInput);
+            const cleanQuery = isIsbn ? rawInput.replace(/[^0-9X]/gi, "") : rawInput;
+
+            let existingItem = null;
+            if (isIsbn) {
+                existingItem = allInventory.find(item => item.book.isbn.replace(/[^0-9X]/gi, "") === cleanQuery);
+            } else {
+                existingItem = allInventory.find(item => item.book.title.toLowerCase().includes(cleanQuery.toLowerCase()));
+            }
+
+            if (existingItem) {
+                showLoader(false);
+                openDetailView(existingItem, true);
+            } else {
+                try {
+                    const apiQuery = isIsbn ? `isbn:${cleanQuery}` : `intitle:${encodeURIComponent(cleanQuery)}`;
+                    // Fetch up to 10 results
+                    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${apiQuery}&maxResults=10`);
+                    const data = await response.json();
+
+                    if (data.totalItems > 0 && data.items) {
+                        currentSearchResults = data.items; // Store raw results
+
+                        // If exactly 1 result or ISBN search returned 1 exact match (unlikely for broad ISBN but possible)
+                        if (data.items.length === 1) {
+                            selectBookFromList(0); // Auto-select single result
+                        } else {
+                            // Multiple results -> Show Selection Modal
+                            showLoader(false);
+                            openSearchModal();
+                        }
+                    } else {
+                        showLoader(false);
+                        alert("Nessun libro trovato.");
+                    }
+                } catch (error) {
+                    console.error(error);
+                    showLoader(false);
+                    alert("Errore di rete o API.");
+                }
+            }
+        };
+
+        // --- SEARCH SELECTION LOGIC ---
+
+        window.openSearchModal = () => {
+            const listEl = document.getElementById('search-results-list');
+            listEl.innerHTML = currentSearchResults.map((item, index) => {
+                const info = item.volumeInfo;
+                const thumb = info.imageLinks?.thumbnail?.replace('http://', 'https://') || "https://via.placeholder.com/50x70?text=No+Img";
+                const date = info.publishedDate ? info.publishedDate.substring(0,4) : 'N/D';
+                return `
+                <div onclick="selectBookFromList(${index})" class="flex gap-3 p-3 bg-gray-100 rounded-xl cursor-pointer hover:bg-emerald-50 transition border border-transparent hover:border-emerald-200">
+                    <img src="${thumb}" class="w-12 h-16 object-cover rounded shadow-sm bg-gray-200 shrink-0">
+                    <div class="flex-1 overflow-hidden">
+                        <h4 class="font-bold text-gray-800 text-sm truncate">${info.title}</h4>
+                        <p class="text-xs text-gray-600 truncate">${info.authors ? info.authors.join(', ') : 'Autore sconosciuto'}</p>
+                        <p class="text-[10px] text-gray-400 mt-1">${info.publisher || 'Editore sconosciuto'} • ${date}</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-300 self-center"></i>
+                </div>`;
+            }).join('');
+            
+            document.getElementById('modal-search-results').classList.remove('hidden');
+        };
+
+        window.closeSearchModal = () => {
+            document.getElementById('modal-search-results').classList.add('hidden');
+        };
+
+        window.selectBookFromList = (index) => {
+            closeSearchModal();
+            showLoader(true, "Caricamento dettagli...");
+            
+            const rawItem = currentSearchResults[index];
+            const info = rawItem.volumeInfo;
+            
+            let bookId = "NO-ISBN";
+            if(info.industryIdentifiers) {
+                const isbnObj = info.industryIdentifiers.find(i => i.type === "ISBN_13") || info.industryIdentifiers[0];
+                if (isbnObj) bookId = isbnObj.identifier;
+            } else {
+                bookId = rawItem.id; 
+            }
+
+            const realBook = {
+                isbn: bookId,
+                title: info.title || "Titolo sconosciuto",
+                author: info.authors ? info.authors[0] : "Autore sconosciuto",
+                cover: info.imageLinks ? info.imageLinks.thumbnail.replace('http://', 'https://') : "https://via.placeholder.com/150x200?text=No+Cover",
+                prices: { amazon: "Vedi", ebay: "Vedi", abebooks: "Vedi" }, 
+                links: {
+                    amazon: `https://www.amazon.it/s?k=${encodeURIComponent(bookId !== "NO-ISBN" ? bookId : info.title)}`,
+                    ebay: `https://www.ebay.it/sch/i.html?_nkw=${encodeURIComponent(bookId !== "NO-ISBN" ? bookId : info.title)}`,
+                    abebooks: `https://www.abebooks.it/servlet/SearchResults?${bookId !== "NO-ISBN" ? 'isbn='+bookId : 'tn='+encodeURIComponent(info.title)}`
+                },
+                strategy: null, 
+                history: {
+                    amazon: [10, 10, 10, 10, 10, 10], 
+                    ebay: [8, 8, 8, 8, 8, 8],
+                    abebooks: [15, 15, 15, 15, 15, 15]
+                }
+            };
+            
+            showLoader(false);
+            openDetailView({ book: realBook }, false);
+        };
+
+
+        // --- CHART LOGIC ---
+        window.toggleTrend = (channel) => {
+            const panel = document.getElementById(`trend-${channel}`);
+            const isOpen = panel.classList.contains('open');
+            document.querySelectorAll('.trend-panel').forEach(p => p.classList.remove('open'));
+            if (!isOpen) {
+                renderChart(channel);
+                panel.classList.add('open');
+            }
+        };
+
+        function renderChart(channel) {
+            const container = document.getElementById(`chart-${channel}`);
+            let history = currentViewedBook.book.history?.[channel];
+            if (!history) {
+                 const currentPrice = parseFloat(currentViewedBook.book.prices[channel]) || 10;
+                 history = Array.from({length: 6}, () => (currentPrice + (Math.random() * 4 - 2)).toFixed(2));
+            }
+
+            const maxVal = Math.max(...history.map(parseFloat)) * 1.1;
+            const minVal = Math.min(...history.map(parseFloat)) * 0.9;
+            const months = ["Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
+
+            const barsHtml = history.map((val, i) => {
+                const heightPct = ((val - minVal) / (maxVal - minVal)) * 80 + 10; 
+                const prev = i > 0 ? history[i-1] : val;
+                const colorClass = val >= prev ? 'bg-emerald-400' : 'bg-red-400';
+                return `
+                    <div class="flex flex-col items-center justify-end h-full w-full group">
+                         <span class="mb-1 opacity-0 group-hover:opacity-100 transition text-[9px] font-bold text-gray-600">€${val}</span>
+                        <div class="w-3 ${colorClass} chart-bar rounded-t" style="height: ${heightPct}%"></div>
+                        <span class="mt-1">${months[i]}</span>
+                    </div>`;
+            }).join('');
+            container.innerHTML = barsHtml;
+        }
+
+        // --- UI FUNCTIONS ---
+        
+        window.calculateDiff = (channel) => {
+            const inputVal = document.getElementById(`input-price-${channel}`).value;
+            const marketVal = currentViewedBook.book.prices[channel];
+            const diffEl = document.getElementById(`diff-${channel}`);
+
+            if(!inputVal) {
+                diffEl.innerHTML = "";
+                return;
+            }
+
+            const mkt = parseFloat(marketVal); 
+            const my = parseFloat(inputVal);
+
+            if(isNaN(mkt)) return; 
+
+            const diff = my - mkt;
+            
+            if (diff > 0) {
+                diffEl.innerHTML = `<span class="text-[10px] bg-red-100 text-red-600 px-1 rounded font-bold">+€${diff.toFixed(2)}</span>`;
+            } else {
+                diffEl.innerHTML = `<span class="text-[10px] bg-emerald-100 text-emerald-600 px-1 rounded font-bold">OK</span>`;
+            }
+        };
+
+        function openDetailView(item, isInventoryItem) {
+            currentViewedBook = item; 
+            isEditingMode = isInventoryItem;
+            currentDocId = item.firestoreId || null;
+
+            document.querySelectorAll('.trend-panel').forEach(p => p.classList.remove('open'));
+
+            const els = {
+                isbn: document.getElementById('res-isbn'),
+                title: document.getElementById('res-title'),
+                author: document.getElementById('res-author'),
+                cover: document.getElementById('book-cover'),
+                ribbon: document.getElementById('inventory-ribbon'),
+                locBadge: document.getElementById('inventory-location-badge'),
+                locText: document.getElementById('res-shelf-pos'),
+                copiesText: document.getElementById('res-copies-badge'),
+                conditionBadge: document.getElementById('res-condition-badge'),
+                btn: document.getElementById('main-action-btn'),
+                badge: document.getElementById('mode-badge'),
+                strategy: document.getElementById('res-strategy'),
+                galleryBtn: document.getElementById('gallery-btn')
+            };
+
+            els.isbn.innerText = item.book.isbn;
+            els.title.innerText = item.book.title;
+            els.author.innerText = item.book.author;
+            els.cover.src = item.book.cover;
+
+            document.getElementById('price-amazon').innerText = isNaN(parseFloat(item.book.prices.amazon)) ? item.book.prices.amazon : `€ ${item.book.prices.amazon}`;
+            document.getElementById('price-ebay').innerText = isNaN(parseFloat(item.book.prices.ebay)) ? item.book.prices.ebay : `€ ${item.book.prices.ebay}`;
+            document.getElementById('price-abebooks').innerText = isNaN(parseFloat(item.book.prices.abebooks)) ? item.book.prices.abebooks : `€ ${item.book.prices.abebooks}`;
+            
+            // AI Strategy Reset or Show
+            els.strategy.innerText = "Clicca 'Chiedi a Gemini' per analizzare il mercato...";
+            els.strategy.className = "text-sm text-gray-300 italic min-h-[3rem]"; // Reset class
+
+            document.getElementById('input-price-amazon').value = item.myPrices?.amazon || "";
+            document.getElementById('input-price-ebay').value = item.myPrices?.ebay || "";
+            document.getElementById('input-price-abebooks').value = item.myPrices?.abebooks || "";
+            
+            window.calculateDiff('amazon');
+            window.calculateDiff('ebay');
+            window.calculateDiff('abebooks');
+
+            // Handle Gallery Button visibility
+            if(item.photos && item.photos.length > 0) {
+                els.galleryBtn.classList.remove('hidden');
+            } else {
+                els.galleryBtn.classList.add('hidden');
+            }
+
+            if (isInventoryItem) {
+                els.ribbon.classList.remove('hidden');
+                els.locBadge.classList.remove('hidden');
+                els.locText.innerText = `${item.location.shelf}-${item.location.position}`;
+                els.copiesText.innerText = `x${item.copies || 1}`;
+                
+                const cond = item.condition || "Buono";
+                let condColor = "bg-gray-100 text-gray-600";
+                if(cond === "Nuovo" || cond === "Come Nuovo" || cond === "Ottimo") condColor = "bg-emerald-100 text-emerald-800 border-emerald-200";
+                else if(cond === "Accettabile" || cond === "Danneggiato") condColor = "bg-orange-100 text-orange-800 border-orange-200";
+                
+                els.conditionBadge.innerText = cond.length > 20 ? cond.substring(0, 18) + '...' : cond;
+                els.conditionBadge.className = `hidden ${condColor} text-[10px] px-2 py-0.5 rounded border font-bold uppercase ml-2`;
+                els.conditionBadge.classList.remove('hidden');
+
+                els.btn.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> <span>Aggiorna Dati</span>`;
+                els.btn.className = "w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg font-bold transition shadow-lg flex items-center justify-center gap-2";
+                els.badge.innerText = "IN MAGAZZINO";
+                els.badge.className = "px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-800";
+                els.badge.classList.remove('hidden');
+            } else {
+                els.ribbon.classList.add('hidden');
+                els.locBadge.classList.add('hidden');
+                els.conditionBadge.classList.add('hidden');
+                els.btn.innerHTML = `<i class="fa-solid fa-plus"></i> <span>Aggiungi a Inventario</span>`;
+                els.btn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-lg font-bold transition shadow-lg flex items-center justify-center gap-2";
+                els.badge.classList.add('hidden');
+            }
+
+            window.showSection('results');
+        }
+
+        // --- FIRESTORE OPERATIONS ---
+
+        window.toggleConditionInput = () => {
+            const val = document.getElementById('inv-condition').value;
+            const customInput = document.getElementById('inv-condition-custom');
+            if(val === 'Altro') customInput.classList.remove('hidden');
+            else customInput.classList.add('hidden');
+        };
+
+        window.openInventoryModal = () => {
+            if(!currentViewedBook) return;
+            const item = currentViewedBook;
+            document.getElementById('modal-book-title').innerText = item.book.title;
+
+            // Load existing photos if in editing mode
+            if (isEditingMode && item.photos) {
+                currentPhotos = [...item.photos];
+            } else {
+                currentPhotos = [];
+            }
+            updatePhotoUI();
+
+            if (isEditingMode) {
+                document.getElementById('modal-title').innerText = "Modifica Logistica";
+                document.getElementById('modal-save-btn').innerText = "Salva Tutto";
+                document.getElementById('inv-shelf').value = item.location.shelf;
+                document.getElementById('inv-pos').value = item.location.position;
+                document.getElementById('inv-copies').value = item.copies || 1;
+                document.getElementById('inv-purchase-price').value = item.purchasePrice || ""; 
+                document.getElementById('inv-notes').value = item.notes || ""; 
+                
+                const savedCond = item.condition || "Buono";
+                const select = document.getElementById('inv-condition');
+                const customInput = document.getElementById('inv-condition-custom');
+                const options = Array.from(select.options).map(o => o.value).filter(v => v !== 'Altro');
+                
+                if (options.includes(savedCond)) {
+                    select.value = savedCond;
+                    customInput.value = "";
+                    customInput.classList.add('hidden');
+                } else {
+                    select.value = 'Altro';
+                    customInput.value = savedCond;
+                    customInput.classList.remove('hidden');
+                }
+            } else {
+                document.getElementById('modal-title').innerText = "Nuovo Inserimento";
+                document.getElementById('modal-save-btn').innerText = "Conferma Inserimento";
+                document.getElementById('inv-shelf').value = "";
+                document.getElementById('inv-pos').value = "";
+                document.getElementById('inv-copies').value = 1;
+                document.getElementById('inv-purchase-price').value = ""; 
+                document.getElementById('inv-condition').value = "Buono";
+                document.getElementById('inv-notes').value = ""; 
+                document.getElementById('inv-condition-custom').value = "";
+                document.getElementById('inv-condition-custom').classList.add('hidden');
+            }
+            document.getElementById('modal-inventory').classList.remove('hidden');
+        };
+
+        window.saveToFirestore = async () => {
+            if (!currentUser) return alert("Devi attendere l'autenticazione.");
+
+            const shelf = document.getElementById('inv-shelf').value.toUpperCase();
+            let pos = document.getElementById('inv-pos').value;
+            let copies = parseInt(document.getElementById('inv-copies').value);
+            const notes = document.getElementById('inv-notes').value;
+            const purchasePrice = parseFloat(document.getElementById('inv-purchase-price').value) || 0; 
+            
+            let condition = document.getElementById('inv-condition').value;
+            if (condition === 'Altro') {
+                condition = document.getElementById('inv-condition-custom').value;
+                if(!condition) condition = "Altro"; 
+            }
+
+            if (shelf.length < 1 || !pos) return alert("Dati posizione mancanti");
+            if (!copies || copies < 1) copies = 1;
+
+            pos = pos.toString().padStart(2, '0');
+
+            const myPrices = {
+                amazon: document.getElementById('input-price-amazon').value,
+                ebay: document.getElementById('input-price-ebay').value,
+                abebooks: document.getElementById('input-price-abebooks').value
+            };
+
+            const inventoryCollection = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory');
+
+            showLoader(true, "Salvataggio...");
+            
+            try {
+                if (isEditingMode && currentDocId) {
+                    await updateDoc(doc(inventoryCollection, currentDocId), {
+                        location: { shelf, position: pos },
+                        copies: copies,
+                        condition: condition,
+                        myPrices: myPrices,
+                        purchasePrice: purchasePrice, 
+                        notes: notes,
+                        photos: currentPhotos // Save photos array
+                    });
+                    alert("Aggiornato!");
+                } else {
+                    await addDoc(inventoryCollection, {
+                        book: currentViewedBook.book,
+                        location: { shelf, position: pos },
+                        copies: copies,
+                        condition: condition,
+                        myPrices: myPrices,
+                        purchasePrice: purchasePrice, 
+                        notes: notes,
+                        photos: currentPhotos, // Save photos array
+                        dateAdded: new Date().toISOString()
+                    });
+                    alert("Salvato in Cloud!");
+                }
+                
+                window.closeInventoryModal();
+                // Refresh logic
+                document.getElementById('inventory-search').value = ""; 
+                window.updateInventoryView(); 
+                window.showSection('inventory'); 
+                
+                showLoader(false);
+
+            } catch (e) {
+                console.error(e);
+                alert("Errore salvataggio: " + e.message);
+                showLoader(false);
+            }
+        };
+
+        window.deleteItem = async (e, id) => {
+            e.stopPropagation();
+            if(!confirm("Eliminare definitivamente?")) return;
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory', id));
+            } catch(err) {
+                alert("Errore eliminazione");
+            }
+        };
+
+        // --- PHOTO HANDLING ---
+
+        window.handlePhotoUpload = (event) => {
+            if (currentPhotos.length >= 3) {
+                alert("Massimo 3 foto consentite.");
+                return;
+            }
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showLoader(true, "Compressione immagine...");
+            
+            // Compress Image
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800; // Limit size drastically for Firestore
+                    const scaleSize = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scaleSize;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    // Compress to low quality JPEG to save space
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6); 
+                    
+                    currentPhotos.push(dataUrl);
+                    updatePhotoUI();
+                    showLoader(false);
+                }
+            }
+        };
+
+        window.removePhoto = (index) => {
+            currentPhotos.splice(index, 1);
+            updatePhotoUI();
+        };
+
+        window.updatePhotoUI = () => {
+            const container = document.getElementById('photo-thumbnails');
+            const countEl = document.getElementById('photo-count');
+            const addBtn = document.getElementById('add-photo-btn');
+            
+            countEl.innerText = `${currentPhotos.length}/3`;
+            addBtn.disabled = currentPhotos.length >= 3;
+            addBtn.style.opacity = currentPhotos.length >= 3 ? 0.5 : 1;
+
+            container.innerHTML = currentPhotos.map((photo, i) => `
+                <div class="relative w-16 h-16 shrink-0 group">
+                    <img src="${photo}" class="w-full h-full object-cover rounded-lg border border-gray-300">
+                    <button onclick="removePhoto(${i})" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-md">
+                        <i class="fa-solid fa-xmark text-[10px]"></i>
+                    </button>
+                </div>
+            `).join('');
+        };
+
+        window.openGallery = () => {
+            if(!currentViewedBook || !currentViewedBook.photos || currentViewedBook.photos.length === 0) return;
+            const container = document.getElementById('gallery-container');
+            container.innerHTML = currentViewedBook.photos.map(p => `
+                <img src="${p}" class="h-full w-auto object-contain snap-center rounded shadow-lg max-w-[90vw]">
+            `).join('');
+            document.getElementById('modal-gallery').classList.remove('hidden');
+        };
+
+        // --- GLOBAL HELPERS ---
+        window.showSection = (id) => {
+            document.getElementById('section-home').classList.add('hidden');
+            document.getElementById('section-results').classList.add('hidden');
+            document.getElementById('section-inventory').classList.add('hidden');
+            document.getElementById('section-import-export').classList.add('hidden'); // Add this line
+            document.getElementById('section-dashboard').classList.add('hidden'); // Add this line
+            
+            document.getElementById('section-' + id).classList.remove('hidden');
+            if(id === 'inventory') {
+                currentPage = 1;
+                document.getElementById('inventory-search').value = "";
+                updateInventoryView();
+            }
+        };
+
+        window.toggleMenu = () => {
+            const m = document.getElementById('side-menu');
+            m.classList.toggle('translate-x-full');
+        };
+
+        window.closeInventoryModal = () => document.getElementById('modal-inventory').classList.add('hidden');
+        
+        function showLoader(show, text = "Elaborazione...") {
+            const el = document.getElementById('loading-overlay');
+            if(show) {
+                document.getElementById('loading-text').innerText = text;
+                el.classList.remove('hidden');
+                el.style.display = 'flex';
+            } else {
+                el.classList.add('hidden');
+                el.style.display = 'none';
+            }
+        }
+        
+        // --- CAMERA ---
+        let html5QrCode;
+        window.startCamera = () => {
+             document.getElementById('camera-placeholder').classList.add('hidden');
+             document.getElementById('scan-overlay').classList.remove('hidden');
+             html5QrCode = new Html5Qrcode("reader");
+             html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 150 } }, 
+                (decodedText) => {
+                    html5QrCode.stop().then(() => {
+                         document.getElementById('camera-placeholder').classList.remove('hidden');
+                         document.getElementById('scan-overlay').classList.add('hidden');
+                         html5QrCode.clear();
+                         window.processSearch(decodedText);
+                    });
+                }
+             ).catch(err => {
+                 alert("Errore camera. Usa HTTPS.");
+                 document.getElementById('camera-placeholder').classList.remove('hidden');
+                 document.getElementById('scan-overlay').classList.add('hidden');
+             });
+        };
+
+    </script>
+</body>
+</html>
