@@ -15,10 +15,10 @@ import { logout } from '../services/auth'
 const LOGO_URL = 'https://libreriasottomarina.it/wp-content/uploads/2024/04/site-logo.png'
 
 const navItems = [
-  { to: '/',              icon: BarcodeIcon,   label: 'Scansiona',         end: true  },
-  { to: '/inventory',     icon: BoxesIcon,     label: 'Inventario',        end: false },
-  { to: '/dashboard',     icon: PieChartIcon,  label: 'Dashboard',         end: false },
-  { to: '/import-export', icon: FileInputIcon, label: 'Importa / Esporta', end: false },
+  { to: '/admin/scanner',       icon: BarcodeIcon,   label: 'Scansiona',         end: true  },
+  { to: '/admin/inventory',     icon: BoxesIcon,     label: 'Inventario',        end: false },
+  { to: '/admin/dashboard',     icon: PieChartIcon,  label: 'Dashboard',         end: false },
+  { to: '/admin/import-export', icon: FileInputIcon, label: 'Importa / Esporta', end: false },
 ]
 
 const AppShell = () => {
@@ -29,7 +29,7 @@ const AppShell = () => {
   const handleLogout = async () => {
     setMenuOpen(false)
     await logout()
-    navigate('/login', { replace: true })
+    navigate('/admin/login', { replace: true })
   }
 
   return (

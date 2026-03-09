@@ -2,24 +2,32 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import AppShell from './components/AppShell'
+import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import PlaceholderPage from './pages/PlaceholderPage'
 import InventoryPage from './pages/InventoryPage'
+import BookDetailPage from './pages/BookDetailPage'
 
 const App = () => (
   <AuthProvider>
     <BrowserRouter>
       <Routes>
-        {/* Route pubbliche */}
-        <Route path="/login"    element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        {/* Landing pubblica */}
+        <Route path="/" element={<HomePage />} />
 
-        {/* Route protette — dentro AppShell */}
-        <Route element={<ProtectedRoute />}>
+        {/* Auth admin */}
+        <Route path="/admin/login"    element={<LoginPage />} />
+        <Route path="/admin/register" element={<RegisterPage />} />
+
+        {/* Route protette admin — dentro AppShell */}
+        <Route path="/admin" element={<ProtectedRoute />}>
           <Route element={<AppShell />}>
-            <Route index                   element={<PlaceholderPage title="Scansiona" />} />
+            <Route index                   element={<Navigate to="scanner" replace />} />
+            <Route path="scanner"          element={<PlaceholderPage title="Scansiona" />} />
             <Route path="inventory"        element={<InventoryPage />} />
+            <Route path="inventory/:id"    element={<BookDetailPage />} />
+            <Route path="book/:isbn"       element={<BookDetailPage />} />
             <Route path="dashboard"        element={<PlaceholderPage title="Dashboard" />} />
             <Route path="import-export"    element={<PlaceholderPage title="Importa / Esporta" />} />
           </Route>

@@ -1,4 +1,5 @@
 import { Trash2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import type { InventoryItem } from '../../types'
 
 interface InventoryCardProps {
@@ -19,6 +20,7 @@ function conditionLabel(cond: string) {
 }
 
 const InventoryCard = ({ item, onDelete }: InventoryCardProps) => {
+  const navigate = useNavigate()
   const cond = item.condition || 'Buono'
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -29,7 +31,10 @@ const InventoryCard = ({ item, onDelete }: InventoryCardProps) => {
   }
 
   return (
-    <div className="glass-panel p-3 rounded-xl flex gap-3 items-center shadow-sm mx-1 cursor-pointer hover:bg-white/40 transition">
+    <div
+      onClick={() => navigate(`/admin/inventory/${item.firestoreId}`)}
+      className="glass-panel p-3 rounded-xl flex gap-3 items-center shadow-sm mx-1 cursor-pointer hover:bg-white/40 transition"
+    >
       {/* Scaffale */}
       <div className="bg-gray-800 text-white w-12 h-12 rounded-lg flex flex-col items-center justify-center shrink-0 border border-emerald-500/50 relative">
         <span className="text-[10px] font-bold text-emerald-400">

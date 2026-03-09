@@ -32,7 +32,7 @@ const RegisterPage = () => {
     setLoading(true)
     try {
       await register(email, password)
-      navigate('/', { replace: true })
+      navigate('/admin', { replace: true })
     } catch (err: unknown) {
       const code = (err as { code?: string }).code ?? ''
       setError(AUTH_ERRORS[code] ?? 'Registrazione non riuscita. Riprova.')
@@ -111,7 +111,7 @@ const RegisterPage = () => {
 
         <p className="text-center text-sm text-gray-600 mt-6">
           Hai già un account?{' '}
-          <Link to="/login" className="text-emerald-600 font-semibold hover:underline">
+          <Link to="/admin/login" className="text-emerald-600 font-semibold hover:underline">
             Accedi
           </Link>
         </p>

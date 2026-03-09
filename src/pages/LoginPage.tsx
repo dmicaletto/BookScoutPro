@@ -25,7 +25,7 @@ const LoginPage = () => {
     setLoading(true)
     try {
       await login(email, password)
-      navigate('/', { replace: true })
+      navigate('/admin', { replace: true })
     } catch (err: unknown) {
       const code = (err as { code?: string }).code ?? ''
       setError(AUTH_ERRORS[code] ?? 'Accesso non riuscito. Riprova.')
@@ -92,7 +92,7 @@ const LoginPage = () => {
 
         <p className="text-center text-sm text-gray-600 mt-6">
           Non hai un account?{' '}
-          <Link to="/register" className="text-emerald-600 font-semibold hover:underline">
+          <Link to="/admin/register" className="text-emerald-600 font-semibold hover:underline">
             Registrati
           </Link>
         </p>
