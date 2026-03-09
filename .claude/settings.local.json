@@ -14,7 +14,8 @@
       "Bash(node -e \"var d = require\\(''./scripts/books-data.json''\\); console.log\\(''Total:'', d.length\\); console.log\\(''With ISBN:'', d.filter\\(function\\(b\\){return b.isbn}\\).length\\); console.log\\(''With publisher:'', d.filter\\(function\\(b\\){return b.publisher}\\).length\\);\")",
       "Bash(node --env-file=.env scripts/seed-inventory.js \"davide.micaletto@gmail.com\" \"Aurele#01\")",
       "Bash(npx tsc -b --noEmit)",
-      "Bash(npx eslint src/)"
+      "Bash(npx eslint src/)",
+      "WebSearch"
     ]
   },
   "enableAllProjectMcpServers": true,
