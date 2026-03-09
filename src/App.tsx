@@ -5,6 +5,7 @@ import AppShell from './components/AppShell'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import PlaceholderPage from './pages/PlaceholderPage'
+import InventoryPage from './pages/InventoryPage'
 
 const App = () => (
   <AuthProvider>
@@ -18,7 +19,7 @@ const App = () => (
         <Route element={<ProtectedRoute />}>
           <Route element={<AppShell />}>
             <Route index                   element={<PlaceholderPage title="Scansiona" />} />
-            <Route path="inventory"        element={<PlaceholderPage title="Inventario" />} />
+            <Route path="inventory"        element={<InventoryPage />} />
             <Route path="dashboard"        element={<PlaceholderPage title="Dashboard" />} />
             <Route path="import-export"    element={<PlaceholderPage title="Importa / Esporta" />} />
           </Route>
