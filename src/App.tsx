@@ -8,6 +8,7 @@ import RegisterPage from './pages/RegisterPage'
 import PlaceholderPage from './pages/PlaceholderPage'
 import InventoryPage from './pages/InventoryPage'
 import BookDetailPage from './pages/BookDetailPage'
+import ScannerPage from './pages/ScannerPage'
 
 const App = () => (
   <AuthProvider>
@@ -24,7 +25,7 @@ const App = () => (
         <Route path="/admin" element={<ProtectedRoute />}>
           <Route element={<AppShell />}>
             <Route index                   element={<Navigate to="scanner" replace />} />
-            <Route path="scanner"          element={<PlaceholderPage title="Scansiona" />} />
+            <Route path="scanner"          element={<ScannerPage />} />
             <Route path="inventory"        element={<InventoryPage />} />
             <Route path="inventory/:id"    element={<BookDetailPage />} />
             <Route path="book/:isbn"       element={<BookDetailPage />} />
