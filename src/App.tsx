@@ -9,13 +9,17 @@ import PlaceholderPage from './pages/PlaceholderPage'
 import InventoryPage from './pages/InventoryPage'
 import BookDetailPage from './pages/BookDetailPage'
 import ScannerPage from './pages/ScannerPage'
+import PublicBookDetailPage from './pages/PublicBookDetailPage'
 
 const App = () => (
   <AuthProvider>
     <BrowserRouter>
       <Routes>
         {/* Landing pubblica */}
-        <Route path="/" element={<HomePage />} />
+        <Route path="/"                 element={<HomePage />} />
+        <Route path="/catalog"          element={<HomePage />} />
+        <Route path="/catalog/book/:id" element={<PublicBookDetailPage />} />
+        <Route path="/info"             element={<HomePage />} />
 
         {/* Auth admin */}
         <Route path="/admin/login"    element={<LoginPage />} />

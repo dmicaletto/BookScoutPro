@@ -50,3 +50,14 @@ export interface Sale {
   quantity: number
   dateSold: string      // ISO string
 }
+
+export interface PublicInfo {
+  id: string
+  title: string
+  content: string
+  type: 'promo' | 'event' | 'info'
+  dateAdded: string     // ISO string
+  active: boolean
+  image?: string        // URL o base64
+}
+
