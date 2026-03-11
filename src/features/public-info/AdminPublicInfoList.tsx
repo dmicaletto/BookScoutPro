@@ -59,7 +59,7 @@ const AdminPublicInfoList = ({
   // --- Loading skeleton ---
   if (loading) {
     return (
-      <div className="flex flex-col h-full p-4 fade-in max-w-2xl mx-auto w-full">
+      <div className="flex flex-col h-full p-4 fade-in max-w-3xl mx-auto w-full">
         <div className="flex justify-between items-center mb-4">
           <div className="h-7 w-40 rounded shimmer" />
           <div className="h-9 w-24 rounded-xl shimmer" />
@@ -74,7 +74,7 @@ const AdminPublicInfoList = ({
   }
 
   return (
-    <div className="flex flex-col h-full fade-in max-w-2xl mx-auto w-full">
+    <div className="flex flex-col h-full fade-in max-w-3xl mx-auto w-full">
       {/* Header */}
       <div className="flex justify-between items-center px-4 pt-4 mb-3 shrink-0">
         <div>

@@ -58,6 +58,8 @@ export interface PublicInfo {
   type: 'promo' | 'event' | 'info'
   dateAdded: string     // ISO string
   active: boolean
-  image?: string        // URL o base64
+  image?: string        // legacy — non più usato in nuovi inserimenti
+  url?: string          // link esterno (sito evento/promo)
+  photos?: string[]     // immagini caricate (base64)
 }
 

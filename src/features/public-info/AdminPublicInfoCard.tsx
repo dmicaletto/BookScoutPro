@@ -36,12 +36,15 @@ const AdminPublicInfoCard = ({
     ? new Date(item.dateAdded).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })
     : ''
 
+  // Thumbnail: prima foto caricata, con fallback a image legacy
+  const thumbnail = item.photos?.[0] ?? item.image
+
   return (
     <div className={`glass-panel p-4 rounded-xl shadow-sm mx-1 flex gap-3 ${!item.active ? 'opacity-60' : ''}`}>
       {/* Immagine */}
-      {item.image && (
+      {thumbnail && (
         <img
-          src={item.image}
+          src={thumbnail}
           alt={item.title}
           className="w-16 h-16 object-cover rounded-lg shrink-0"
         />

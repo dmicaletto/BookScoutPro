@@ -80,7 +80,7 @@ const BookDetailView = ({ item, isEditing }: BookDetailViewProps) => {
   }
 
   return (
-    <div className="fade-in">
+    <div className="fade-in max-w-3xl mx-auto w-full">
       <div className="p-4 space-y-4">
         {/* Back */}
         <button
