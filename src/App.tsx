@@ -13,6 +13,7 @@ import InventoryPage from './pages/InventoryPage'
 import BookDetailPage from './pages/BookDetailPage'
 import ScannerPage from './pages/ScannerPage'
 import PublicBookDetailPage from './pages/PublicBookDetailPage'
+import AdminPublicInfoPage from './pages/AdminPublicInfoPage'
 
 const App = () => (
   <AuthProvider>
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="book/:isbn"       element={<BookDetailPage />} />
             <Route path="dashboard"        element={<PlaceholderPage title="Dashboard" />} />
             <Route path="import-export"    element={<PlaceholderPage title="Importa / Esporta" />} />
+            <Route path="promotions"       element={<AdminPublicInfoPage />} />
           </Route>
         </Route>
 

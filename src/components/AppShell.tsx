@@ -7,6 +7,7 @@ import {
   BoxesIcon,
   PieChartIcon,
   FileInputIcon,
+  MegaphoneIcon,
   LogOutIcon,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -15,10 +16,11 @@ import { logout } from '../services/auth'
 const LOGO_URL = 'https://libreriasottomarina.it/wp-content/uploads/2024/04/site-logo.png'
 
 const navItems = [
-  { to: '/admin/scanner',       icon: BarcodeIcon,   label: 'Scansiona',         end: true  },
-  { to: '/admin/inventory',     icon: BoxesIcon,     label: 'Inventario',        end: false },
-  { to: '/admin/dashboard',     icon: PieChartIcon,  label: 'Dashboard',         end: false },
-  { to: '/admin/import-export', icon: FileInputIcon, label: 'Importa / Esporta', end: false },
+  { to: '/admin/scanner',       icon: BarcodeIcon,    label: 'Scansiona',         end: true  },
+  { to: '/admin/inventory',     icon: BoxesIcon,      label: 'Inventario',        end: false },
+  { to: '/admin/promotions',    icon: MegaphoneIcon,  label: 'Promo & Info',      end: false },
+  { to: '/admin/dashboard',     icon: PieChartIcon,   label: 'Dashboard',         end: false },
+  { to: '/admin/import-export', icon: FileInputIcon,  label: 'Importa / Esporta', end: false },
 ]
 
 const AppShell = () => {
