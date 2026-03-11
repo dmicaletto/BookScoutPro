@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom'
 import {
   MenuIcon,
   XIcon,
@@ -33,21 +33,45 @@ const AppShell = () => {
   }
 
   return (
-    <div
-      id="app-root"
-      className="relative z-10 w-full h-dvh flex flex-col overflow-hidden
-                 sm:max-w-[480px] sm:mx-auto sm:border-x sm:border-white/10 sm:shadow-2xl"
-    >
+    <div id="app-root" className="relative z-10 w-full h-dvh flex flex-col overflow-hidden">
       {/* Header */}
       <header className="glass-dark px-4 py-3 flex justify-between items-center shadow-lg shrink-0 z-40">
-        <img
-          src={LOGO_URL}
-          alt="Libreria Sottomarina"
-          style={{ height: '26px', width: 'auto', filter: 'invert(1)' }}
-        />
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition">
+          <img
+            src={LOGO_URL}
+            alt="Libreria Sottomarina"
+            style={{ height: '26px', width: 'auto', filter: 'invert(1)' }}
+          />
+          <span className="text-white font-semibold text-sm hidden sm:block">
+            Libreria Sottomarina — Staff
+          </span>
+        </Link>
+
+        {/* Nav desktop */}
+        <nav className="hidden md:flex items-center gap-1">
+          {navItems.map(({ to, icon: Icon, label, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                  isActive
+                    ? 'bg-white/10 text-emerald-400'
+                    : 'text-gray-300 hover:text-white hover:bg-white/10'
+                }`
+              }
+            >
+              <Icon size={15} />
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Hamburger mobile */}
         <button
           onClick={() => setMenuOpen(true)}
-          className="text-white hover:text-emerald-400 transition"
+          className="md:hidden text-white hover:text-emerald-400 transition"
           aria-label="Apri menu"
         >
           <MenuIcon size={24} />

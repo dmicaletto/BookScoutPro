@@ -5,14 +5,11 @@
 /* ===== Reset globale ===== */
 html {
   width: 100%;
-  height: 100%;
   background-color: #111827;
-  overflow: hidden;
 }
 
 body {
   width: 100%;
-  height: 100%;
   margin: 0;
   padding: 0;
   font-family: 'Inter', sans-serif;
@@ -21,7 +18,6 @@ body {
   background-position: center;
   background-attachment: fixed;
   background-color: #111827;
-  overflow: hidden;
 }
 
 /* ===== Design system ===== */

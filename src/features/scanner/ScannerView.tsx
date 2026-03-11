@@ -81,7 +81,7 @@ const ScannerView = () => {
       } else {
         setError('Libro non trovato per questo ISBN.')
       }
-    } catch (err) {
+    } catch {
       setError('Errore durante la ricerca ISBN.')
     } finally {
       setLoading(false)
@@ -109,7 +109,7 @@ const ScannerView = () => {
         setResults(books)
         if (books.length === 0) setError('Nessun risultato trovato.')
       }
-    } catch (err) {
+    } catch {
       setError('Errore durante la ricerca.')
     } finally {
       setLoading(false)
