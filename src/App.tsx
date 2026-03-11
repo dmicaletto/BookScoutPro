@@ -3,6 +3,9 @@ import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import AppShell from './components/AppShell'
 import HomePage from './pages/HomePage'
+import CatalogPage from './pages/CatalogPage'
+import InfoPage from './pages/InfoPage'
+import ContactsPage from './pages/ContactsPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import PlaceholderPage from './pages/PlaceholderPage'
@@ -17,9 +20,10 @@ const App = () => (
       <Routes>
         {/* Landing pubblica */}
         <Route path="/"                 element={<HomePage />} />
-        <Route path="/catalog"          element={<HomePage />} />
+        <Route path="/catalog"          element={<CatalogPage />} />
         <Route path="/catalog/book/:id" element={<PublicBookDetailPage />} />
-        <Route path="/info"             element={<HomePage />} />
+        <Route path="/info"             element={<InfoPage />} />
+        <Route path="/contacts"         element={<ContactsPage />} />
 
         {/* Auth admin */}
         <Route path="/admin/login"    element={<LoginPage />} />

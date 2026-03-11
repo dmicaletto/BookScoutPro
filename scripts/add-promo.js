@@ -37,12 +37,12 @@ try {
   console.log(`✅ Login effettuato come: ${uid}`)
 
   const promo = {
-    title: "Estate 2026: Libreria Sottomarina @ Lungo il Tevere Roma",
-    content: "Quest'estate ci trovate sulle banchine del Tevere! Avremo uno stand dedicato con centinaia di titoli selezionati e uno sconto speciale fino al 15% su tutto il catalogo per i visitatori della manifestazione. Vi aspettiamo per sfogliare libri unici sotto le stelle di Roma.",
+    title: "Estate 2026: Stand Libreria Sottomarina @ Lungo il Tevere Roma",
+    content: "Dal 6 giugno al 24 agosto 2026, saremo presenti con il nostro stand sulle sponde del Tevere per l'appuntamento estivo imperdibile targato 'Lungo il Tevere... Roma'! Vi aspettiamo tutti i giorni dalle 19:00 alle 02:00 per scoprire le nostre perle, con sconti speciali sul catalogo. Ingressi alla manifestazione da Ponte Sisto, Ponte Garibaldi, Ponte Sublicio e Ponte Cestio.",
     type: "event",
     dateAdded: new Date().toISOString(),
     active: true,
-    image: "https://www.lungoiltevereroma.it/it" // Link di riferimento
+    image: "https://www.lungoiltevereroma.it/master/assets/img/logo.svg" 
   }
 
   const collRef = collection(db, `artifacts/${appId}/users/${uid}/public_info`)
