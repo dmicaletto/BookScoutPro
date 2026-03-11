@@ -2,7 +2,7 @@ import ScannerView from '../features/scanner/ScannerView'
 
 const ScannerPage = () => {
   return (
-    <div className="flex flex-col h-full bg-transparent overflow-hidden">
+    <div className="flex flex-col h-full bg-transparent max-w-lg mx-auto w-full">
       {/* Header */}
       <h2 className="text-2xl font-bold text-white drop-shadow-md px-6 pt-6 mb-2">
         Aggiungi Libro

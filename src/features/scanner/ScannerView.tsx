@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { 
   Camera, 
@@ -28,46 +28,44 @@ const ScannerView = () => {
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const SCANNER_ID = 'reader'
 
-  useEffect(() => {
-    return () => {
-      stopScanner()
-    }
-  }, [])
-
-  const startScanner = async () => {
-    setError('')
-    setIsScanning(true)
-    try {
-      const html5QrCode = new Html5Qrcode(SCANNER_ID)
-      scannerRef.current = html5QrCode
-      
-      const config = { fps: 10, qrbox: { width: 250, height: 150 } }
-      
-      await html5QrCode.start(
-        { facingMode: 'environment' },
-        config,
-        (decodedText) => {
-          // Successo
-          handleISBNSearch(decodedText)
-        },
-        undefined // ignoriamo errori di scansione frame
-      )
-    } catch (err) {
-      console.error('Errore scanner:', err)
-      setError('Impossibile accedere alla fotocamera.')
-      setIsScanning(false)
-    }
-  }
-
-  const stopScanner = async () => {
+  const stopScanner = useCallback(async () => {
     if (scannerRef.current && scannerRef.current.isScanning) {
       try {
         await scannerRef.current.stop()
-      } catch (err) {
-        console.error('Errore stop scanner:', err)
+      } catch {
+        // ignorato
       }
     }
     setIsScanning(false)
+  }, [])
+
+  // Avvia il decoder DOPO che React ha renderizzato il div#reader
+  useEffect(() => {
+    if (!isScanning) return
+
+    const html5QrCode = new Html5Qrcode(SCANNER_ID)
+    scannerRef.current = html5QrCode
+
+    html5QrCode
+      .start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 250, height: 150 } },
+        (decodedText) => { handleISBNSearch(decodedText) },
+        undefined
+      )
+      .catch(() => {
+        setError('Impossibile accedere alla fotocamera.')
+        setIsScanning(false)
+      })
+  }, [isScanning]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    return () => { stopScanner() }
+  }, [stopScanner])
+
+  const startScanner = () => {
+    setError('')
+    setIsScanning(true) // re-render → div#reader in DOM → useEffect lo inizializza
   }
 
   const handleISBNSearch = async (isbn: string) => {
@@ -123,7 +121,7 @@ const ScannerView = () => {
         <button
           onClick={() => { setActiveTab('scan'); stopScanner(); setResults([]); setError(''); }}
           className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition font-medium ${
-            activeTab === 'scan' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white/10 text-gray-400 hover:bg-white/20'
+            activeTab === 'scan' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white/10 text-gray-700 hover:bg-white/20'
           }`}
         >
           <Barcode size={18} />
@@ -132,7 +130,7 @@ const ScannerView = () => {
         <button
           onClick={() => { setActiveTab('search'); stopScanner(); setResults([]); setError(''); }}
           className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition font-medium ${
-            activeTab === 'search' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white/10 text-gray-400 hover:bg-white/20'
+            activeTab === 'search' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white/10 text-gray-700 hover:bg-white/20'
           }`}
         >
           <Search size={18} />
@@ -144,8 +142,11 @@ const ScannerView = () => {
         
         {activeTab === 'scan' && (
           <div className="space-y-4">
-            <div className="glass-panel rounded-2xl overflow-hidden relative aspect-[4/3] flex flex-col items-center justify-center border-2 border-emerald-500/30">
-              {!isScanning ? (
+            <div className="glass-panel rounded-2xl overflow-hidden relative h-64 flex flex-col items-center justify-center border-2 border-emerald-500/30">
+              {/* div#reader sempre nel DOM: evita "HTML Element not found" */}
+              <div id={SCANNER_ID} className={isScanning ? 'w-full h-full' : 'hidden'} />
+
+              {!isScanning && (
                 <div className="text-center p-6 space-y-4">
                   <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
                     <Camera size={32} />
@@ -161,9 +162,10 @@ const ScannerView = () => {
                     Apri Fotocamera
                   </button>
                 </div>
-              ) : (
+              )}
+
+              {isScanning && (
                 <>
-                  <div id={SCANNER_ID} className="w-full h-full" />
                   <div className="scan-line" />
                   <button
                     onClick={stopScanner}

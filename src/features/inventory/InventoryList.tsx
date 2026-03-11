@@ -51,7 +51,7 @@ const InventoryList = ({ items, loading, onDelete }: InventoryListProps) => {
   // --- Loading skeleton ---
   if (loading) {
     return (
-      <div className="flex flex-col h-full p-2 pt-4 fade-in">
+      <div className="flex flex-col h-full p-2 pt-4 fade-in max-w-2xl mx-auto w-full">
         <div className="flex justify-between items-end mb-4 px-2">
           <div className="h-7 w-32 rounded shimmer" />
           <div className="h-5 w-8 rounded-full shimmer" />
@@ -69,7 +69,7 @@ const InventoryList = ({ items, loading, onDelete }: InventoryListProps) => {
   }
 
   return (
-    <div className="flex flex-col h-full fade-in">
+    <div className="flex flex-col h-full fade-in max-w-2xl mx-auto w-full">
       {/* Header */}
       <div className="flex justify-between items-end mb-4 px-4 pt-4">
         <h2 className="text-2xl font-bold text-white drop-shadow-md">
@@ -98,7 +98,7 @@ const InventoryList = ({ items, loading, onDelete }: InventoryListProps) => {
       </div>
 
       {/* Lista */}
-      <div className="flex-1 space-y-3 pb-2 overflow-y-auto hide-scroll px-2">
+      <div className="flex-1 space-y-3 pb-2 overflow-y-auto hide-scroll px-4">
         {paginatedItems.length === 0 ? (
           <p className="text-center text-gray-400 mt-8 text-sm">
             Nessun libro trovato.
