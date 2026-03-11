@@ -26,7 +26,7 @@ const firebaseConfig = {
   appId:             process.env.VITE_FIREBASE_APP_ID,
 }
 
-const appId = process.env.VITE_APP_ID || 'bookscout-pro'
+const appId = process.env.VITE_APP_ID || 'default-app-id'
 const app = initializeApp(firebaseConfig)
 const auth = getAuth(app)
 const db = getFirestore(app)
