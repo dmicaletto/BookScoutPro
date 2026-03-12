@@ -90,12 +90,6 @@ const LoginPage = () => {
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-600 mt-6">
-          Non hai un account?{' '}
-          <Link to="/admin/register" className="text-emerald-600 font-semibold hover:underline">
-            Registrati
-          </Link>
-        </p>
       </div>
     </div>
   )
