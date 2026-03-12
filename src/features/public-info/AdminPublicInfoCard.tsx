@@ -54,20 +54,20 @@ const AdminPublicInfoCard = ({
       <div className="flex-1 overflow-hidden">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase ${TYPE_COLORS[item.type]}`}>
+            <span className={`text-xs px-2 py-0.5 rounded font-bold uppercase ${TYPE_COLORS[item.type]}`}>
               {TYPE_LABELS[item.type]}
             </span>
             {!item.active && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase bg-red-100 text-red-600">
+              <span className="text-xs px-2 py-0.5 rounded font-bold uppercase bg-red-100 text-red-600">
                 Nascosto
               </span>
             )}
           </div>
-          <span className="text-[10px] text-gray-500 shrink-0">{dateStr}</span>
+          <span className="text-xs text-gray-500 shrink-0">{dateStr}</span>
         </div>
 
-        <h4 className="font-bold text-gray-900 text-sm mt-1 truncate">{item.title}</h4>
-        <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{item.content}</p>
+        <h4 className="font-bold text-gray-900 text-base mt-1 truncate">{item.title}</h4>
+        <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">{item.content}</p>
       </div>
 
       {/* Azioni */}

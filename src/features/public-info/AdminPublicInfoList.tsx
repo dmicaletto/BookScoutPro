@@ -79,7 +79,7 @@ const AdminPublicInfoList = ({
       <div className="flex justify-between items-center px-4 pt-4 mb-3 shrink-0">
         <div>
           <h2 className="text-2xl font-bold text-white drop-shadow-md">Promo & Info</h2>
-          <p className="text-xs text-gray-300 mt-0.5">Contenuti visibili ai clienti</p>
+          <p className="text-sm text-gray-300 mt-0.5">Contenuti visibili ai clienti</p>
         </div>
         <button
           onClick={handleNew}

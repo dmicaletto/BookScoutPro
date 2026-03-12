@@ -42,9 +42,9 @@ const AppShell = () => {
           <img
             src={LOGO_URL}
             alt="Libreria Sottomarina"
-            style={{ height: '26px', width: 'auto', filter: 'invert(1)' }}
+            style={{ height: '32px', width: 'auto', filter: 'invert(1)' }}
           />
-          <span className="text-white font-semibold text-sm hidden sm:block">
+          <span className="text-white font-semibold text-base hidden sm:block">
             Libreria Sottomarina — Staff
           </span>
         </Link>

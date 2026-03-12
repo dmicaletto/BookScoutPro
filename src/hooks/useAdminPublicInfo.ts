@@ -7,6 +7,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  deleteField,
   doc,
 } from 'firebase/firestore'
 import { db, FIRESTORE_APP_ID } from '../services/firebase'
@@ -53,17 +54,26 @@ export function useAdminPublicInfo() {
 
   const addItem = async (data: PublicInfoInput) => {
     if (!user) return
+    // Firestore non accetta undefined: filtra i campi assenti
+    const payload = Object.fromEntries(
+      Object.entries(data).filter(([, v]) => v !== undefined),
+    )
     await addDoc(
       collection(db, 'artifacts', FIRESTORE_APP_ID, 'users', user.uid, 'public_info'),
-      data,
+      payload,
     )
   }
 
   const updateItem = async (id: string, data: Partial<PublicInfoInput>) => {
     if (!user) return
+    // Firestore non accetta undefined: i campi undefined diventano deleteField()
+    const payload: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(data)) {
+      payload[key] = value === undefined ? deleteField() : value
+    }
     await updateDoc(
       doc(db, 'artifacts', FIRESTORE_APP_ID, 'users', user.uid, 'public_info', id),
-      data,
+      payload,
     )
   }
 
