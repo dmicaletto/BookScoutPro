@@ -15,7 +15,8 @@
       "Bash(node --env-file=.env scripts/seed-inventory.js \"davide.micaletto@gmail.com\" \"Aurele#01\")",
       "Bash(npx tsc -b --noEmit)",
       "Bash(npx eslint src/)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(node -e \"const p=require\\(''./package.json''\\); console.log\\(JSON.stringify\\({deps: Object.keys\\(p.dependencies\\), dev: Object.keys\\(p.devDependencies\\)}, null, 2\\)\\)\")"
     ]
   },
   "enableAllProjectMcpServers": true,
