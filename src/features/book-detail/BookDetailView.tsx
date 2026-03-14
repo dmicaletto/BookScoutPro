@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   ShoppingCart,
   Store,
@@ -12,7 +12,8 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import type { InventoryItem, BookPrices } from '../../types'
-import { analyzeBook, getApiKey, setApiKey } from '../../services/gemini'
+import { analyzeBook, getApiKey, loadApiKeyFromFirestore, saveApiKeyToFirestore } from '../../services/gemini'
+import { useAuth } from '../../context/AuthContext'
 import InventoryModal from './InventoryModal'
 
 interface BookDetailViewProps {
@@ -36,12 +37,17 @@ function conditionColor(cond: string) {
 
 const BookDetailView = ({ item, isEditing }: BookDetailViewProps) => {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [myPrices, setMyPrices] = useState<BookPrices>({ ...item.myPrices })
   const [strategy, setStrategy] = useState(item.book.strategy ?? '')
   const [aiLoading, setAiLoading] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [showKeyPrompt, setShowKeyPrompt] = useState(false)
   const [apiKeyInput, setApiKeyInput] = useState('')
+
+  useEffect(() => {
+    if (user) loadApiKeyFromFirestore(user.uid)
+  }, [user])
 
   const book = item.book
 
@@ -70,9 +76,9 @@ const BookDetailView = ({ item, isEditing }: BookDetailViewProps) => {
     }
   }
 
-  const handleSaveKey = () => {
-    if (apiKeyInput.trim()) {
-      setApiKey(apiKeyInput.trim())
+  const handleSaveKey = async () => {
+    if (apiKeyInput.trim() && user) {
+      await saveApiKeyToFirestore(user.uid, apiKeyInput.trim())
       setShowKeyPrompt(false)
       setApiKeyInput('')
       handleGemini()
@@ -177,14 +183,14 @@ const BookDetailView = ({ item, isEditing }: BookDetailViewProps) => {
               className="flex items-center gap-1 text-xs bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white px-3 py-1.5 rounded-lg transition"
             >
               <Sparkles size={12} />
-              {aiLoading ? 'Generazione...' : 'Chiedi a Gemini'}
+              {aiLoading ? 'Analisi in corso...' : 'Analizza'}
             </button>
           </div>
           {strategy ? (
             <p className="text-sm text-gray-700 leading-relaxed">{strategy}</p>
           ) : (
             <p className="text-sm text-gray-400 italic">
-              Clicca &quot;Chiedi a Gemini&quot; per analizzare il mercato...
+              Clicca &quot;Analizza&quot; per eseguire un&apos;analisi di mercato sul libro...
             </p>
           )}
         </div>

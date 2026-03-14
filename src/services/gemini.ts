@@ -1,7 +1,9 @@
+import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { db, FIRESTORE_APP_ID } from './firebase'
 import type { Book } from '../types'
 
 const STORAGE_KEY = 'bookscout_api_key'
-const MODEL = 'gemini-2.5-flash-preview-09-2025'
+const MODEL = 'gemini-2.5-flash'
 
 export function getApiKey(): string | null {
   return localStorage.getItem(STORAGE_KEY)
@@ -9,6 +11,26 @@ export function getApiKey(): string | null {
 
 export function setApiKey(key: string) {
   localStorage.setItem(STORAGE_KEY, key)
+}
+
+export async function loadApiKeyFromFirestore(uid: string): Promise<string | null> {
+  const cached = getApiKey()
+  if (cached) return cached
+  try {
+    const ref = doc(db, 'artifacts', FIRESTORE_APP_ID, 'users', uid, 'settings', 'config')
+    const snap = await getDoc(ref)
+    const key = snap.data()?.googleApiKey as string | undefined
+    if (key) setApiKey(key)
+    return key ?? null
+  } catch {
+    return null
+  }
+}
+
+export async function saveApiKeyToFirestore(uid: string, key: string): Promise<void> {
+  setApiKey(key)
+  const ref = doc(db, 'artifacts', FIRESTORE_APP_ID, 'users', uid, 'settings', 'config')
+  await setDoc(ref, { googleApiKey: key }, { merge: true })
 }
 
 export async function analyzeBook(book: Book, condition: string): Promise<string> {
