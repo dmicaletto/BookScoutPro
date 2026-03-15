@@ -57,7 +57,18 @@ const PublicInfoForm = ({ initial, onSave, onClose }: PublicInfoFormProps) => {
     files.forEach((file) => {
       const reader = new FileReader()
       reader.onloadend = () => {
-        setForm((f) => ({ ...f, photos: [...f.photos, reader.result as string] }))
+        const img = new Image()
+        img.onload = () => {
+          const MAX = 1200
+          const scale = Math.min(1, MAX / Math.max(img.width, img.height))
+          const canvas = document.createElement('canvas')
+          canvas.width  = Math.round(img.width  * scale)
+          canvas.height = Math.round(img.height * scale)
+          canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+          const compressed = canvas.toDataURL('image/jpeg', 0.75)
+          setForm((f) => ({ ...f, photos: [...f.photos, compressed] }))
+        }
+        img.src = reader.result as string
       }
       reader.readAsDataURL(file)
     })
